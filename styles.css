@@ -1,0 +1,58 @@
+/* styles.css */
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #033f63;
+    background-color: #033f631a;
+}
+
+#loginModal input {
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+#outerDiv {
+    display: flex;
+    flex-direction: column;
+    width: 370px;
+}
+
+#headerDiv {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+#headerLeft {
+    display: flex;
+    flex-direction: column;
+}
+
+#headerRight {
+    display: flex;
+    flex-direction: column;
+}
+
+#wordDiv {
+    display: flex;
+    flex-direction: row;
+}
+
+#clueDiv {
+    display: flex;
+    flex-direction: column;
+}
+
+.clueNDiv {
+    display: flex;
+    flex-direction: row;
+}
+
+#btnDiv {
+    display: flex;
+    flex-direction: column;
+}
+
+#btnTopDiv {
+    display: flex;
+    flex-direction: row;
+}
