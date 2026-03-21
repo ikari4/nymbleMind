@@ -1,0 +1,24 @@
+{
+  "name": "nymblemind",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ikari4/nymbleMind.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/ikari4/nymbleMind/issues"
+  },
+  "homepage": "https://github.com/ikari4/nymbleMind#readme",
+  "dependencies": {
+    "@libsql/client": "^0.17.2"
+  }
+}
