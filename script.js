@@ -101,6 +101,19 @@ window.addEventListener("load", async() => {
             }
         });
 
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace") {
+            if (input.value === "") {
+                const prev = document.querySelector(`[name="entry${i - 1}"]`);
+                if (prev) {
+                prev.focus();
+                prev.value = ""; // optional: clears previous box
+                e.preventDefault();
+                }
+            }
+            }
+        });
+
         wordDiv.appendChild(input);
         });
 
