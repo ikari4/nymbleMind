@@ -26,9 +26,12 @@ function getISOYear(date) {
 // on page load
 window.addEventListener("load", async() => {
     // show login screen if user not logged in
+    const titleDiv = document.getElementById("titleDiv");
     const loginModal = document.getElementById("loginModal");
     const loginBtn = document.getElementById("loginBtn");
+    const welcomeDiv = document.getElementById("welcomeDiv");
     const userDiv = document.getElementById("userDiv");
+    const scoreLabelDiv = document.getElementById("scoreLabelDiv");
     const scoreNumDiv = document.getElementById("scoreNumDiv");
     const wordDiv = document.getElementById("wordDiv");
     const clue0Div = document.getElementById("clue0Div");
@@ -43,89 +46,130 @@ window.addEventListener("load", async() => {
     if(!username) {
         loginModal.style.display = "block";
         return;
-    }
+    } else {
+        titleDiv.textContent = "nymbleMind";       
+        
+        // initialize username and dates
+        const getTheDate = new Date();
+        const currentDate = getTheDate.toISOString().slice(0, 10);
+        const currentWeek = getISOWeek(currentDate);
+        const currentYear = getISOYear(currentDate);
 
-    // initialize username and dates
-    const getTheDate = new Date();
-    const currentDate = getTheDate.toISOString().slice(0, 10);
-    const currentWeek = getISOWeek(currentDate);
-    const currentYear = getISOYear(currentDate);
+        // initialize arrays
+        const cluesToReveal = [];
+        const lettersToReveal = [];
+        const showBtn = {
+            clue: 1,
+            letter: 1,
+            guess: 1
+        };
+        const todaysScore = {
+            playerId: playerId,
+            datePlayed: currentDate,
+            week: currentWeek,
+            year: currentYear
+        };
 
-    // initialize arrays
-    const cluesToReveal =[0];
-    const showBtn = {
-        clue: 1,
-        letter: 1,
-        guess: 1
-    };
-    const todaysScore = {
-        playerId: playerId,
-        datePlayed: currentDate,
-        week: currentWeek,
-        year: currentYear
-    };
+        // get today's word from database
+        const resWord = await fetch("/api/getTodaysWord", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ currentDate })
+        });
 
-    const res = await fetch("/api/getTodaysWord", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ currentDate })
-    });
-        const result = await res.json();
-        const row = result[0];
-        const todaysWord = row.word;
+        const resultWord = await resWord.json();
+        const rowWord = resultWord[0];
+        const todaysWord = rowWord.word;
         const todaysClues = {
             clue: {
-                0: row.clue0,
-                1: row.clue1,
-                2: row.clue2
+                0: rowWord.clue0,
+                1: rowWord.clue1,
+                2: rowWord.clue2
             }
         };
         const todaysLetters = todaysWord.split("");
 
         // create letter box inputs
         todaysLetters.forEach((_, i) => {
-        const input = document.createElement("input");
+            const input = document.createElement("input");
 
-        input.type = "text";
-        input.maxLength = 1;
-        input.name = `entry${i}`;
-        input.className = "letterBox";
+            input.type = "text";
+            input.maxLength = 1;
+            input.name = `entry${i}`;
+            input.className = "letterBox";
 
-        // move to next input on input
-        input.addEventListener("input", () => {
-            if (input.value.length === 1) {
-            const next = document.querySelector(`[name="entry${i + 1}"]`);
-            if (next) next.focus();
-            }
-        });
-
-          input.addEventListener("keydown", (e) => {
-            if (e.key === "Backspace") {
-            if (input.value === "") {
-                const prev = document.querySelector(`[name="entry${i - 1}"]`);
-                if (prev) {
-                prev.focus();
-                prev.value = ""; // optional: clears previous box
-                e.preventDefault();
+            // move to next input on input
+            input.addEventListener("input", () => {
+                if (input.value.length === 1) {
+                    const next = document.querySelector(`[name="entry${i + 1}"]`);
+                    if (next) next.focus();
                 }
-            }
-            }
-        });
+            });
 
-        wordDiv.appendChild(input);
+            // handle backspace
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Backspace") {
+                    if (input.value === "") {
+                        const prev = document.querySelector(`[name="entry${i - 1}"]`);
+                        if (prev) {
+                        prev.focus();
+                        prev.value = "";
+                        e.preventDefault();
+                        }
+                    }
+                }
+            });
+            wordDiv.appendChild(input);
         });
 
         // focus first input
         const first = document.querySelector('[name="entry0"]');
         if (first) first.focus();
 
-        console.log('todaysWord: ', todaysWord);
-        console.log(todaysLetters);
-        console.log(todaysClues.clue[0]);
+        // check to see if user has already played today
+        const resScore = await fetch("/api/getTodaysScore", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ currentDate, playerId })
+        });
 
-    userDiv.textContent = username;
+        const resultScore = await resScore.json();
+        const rowScore = resultScore[0];
+        
+        // if game has been started, retrieve game status
+        if (rowScore) {
+            todaysScore.score = rowScore.score;
+            for (const key in rowScore) {
+                if (rowScore[key] !== 1) continue;
+
+                if (key.startsWith("clue")) {
+                    cluesToReveal.push(parseInt(key.match(/\d+/)[0]));
+                }
+
+                if (key.startsWith("letter")) {
+                    lettersToReveal.push(parseInt(key.match(/\d+/)[0]));
+                }
+            }
+        } else {
+            todaysScore.score = 10 + 2 * (todaysLetters.length - 5);
+            cluesToReveal.push(0);
+        };
+
+        // populate screen
+        welcomeDiv.textContent = "Welcome,";
+        userDiv.textContent = username;
+        scoreLabelDiv.textContent = "Score";
+        scoreNumDiv.textContent = todaysScore.score;
+        console.log('rowScore: ', rowScore);
+        console.log('cluesToReveal: ', cluesToReveal);
+        console.log('lettersToReveal: ', lettersToReveal);
+        }
+
+    
 });
 
 // on 'login' button click

@@ -2,7 +2,7 @@
 body {
     font-family: 'Fredoka', Arial, sans-serif;
     color: #033f63;
-    background-color: #033f631a;
+    /* background-color: #033f631a; */
     display: flex;
     justify-content: center;
 }
