@@ -70,6 +70,47 @@ window.addEventListener("load", async() => {
             year: currentYear
         };
 
+        // check to see if user has already played today
+        const resScore = await fetch("/api/getTodaysScore", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ currentDate, playerId })
+        });
+
+        const resultScore = await resScore.json();
+        const rowScore = resultScore[0];
+        
+        // if game has been started, retrieve game status
+        if (rowScore) {
+            todaysScore.score = rowScore.score;
+            for (const key in rowScore) {
+                if (rowScore[key] !== 1) continue;
+
+                if (key.startsWith("clue")) {
+                    cluesToReveal.push(parseInt(key.match(/\d+/)[0]));
+                }
+
+                if (key.startsWith("letter")) {
+                    lettersToReveal.push(parseInt(key.match(/\d+/)[0]));
+                }
+            }
+        } else {
+            todaysScore.score = 10 + 2 * (todaysLetters.length - 5);
+            cluesToReveal.push(0);
+        };
+
+        // populate screen
+        welcomeDiv.textContent = "Welcome,";
+        userDiv.textContent = username;
+        scoreLabelDiv.textContent = "Score";
+        scoreNumDiv.textContent = todaysScore.score;
+        console.log('rowScore: ', rowScore);
+        console.log('cluesToReveal: ', cluesToReveal);
+        console.log('lettersToReveal: ', lettersToReveal);
+        
+
         // get today's word from database
         const resWord = await fetch("/api/getTodaysWord", {
             method: "POST",
@@ -127,49 +168,7 @@ window.addEventListener("load", async() => {
         // focus first input
         const first = document.querySelector('[name="entry0"]');
         if (first) first.focus();
-
-        // check to see if user has already played today
-        const resScore = await fetch("/api/getTodaysScore", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ currentDate, playerId })
-        });
-
-        const resultScore = await resScore.json();
-        const rowScore = resultScore[0];
-        
-        // if game has been started, retrieve game status
-        if (rowScore) {
-            todaysScore.score = rowScore.score;
-            for (const key in rowScore) {
-                if (rowScore[key] !== 1) continue;
-
-                if (key.startsWith("clue")) {
-                    cluesToReveal.push(parseInt(key.match(/\d+/)[0]));
-                }
-
-                if (key.startsWith("letter")) {
-                    lettersToReveal.push(parseInt(key.match(/\d+/)[0]));
-                }
-            }
-        } else {
-            todaysScore.score = 10 + 2 * (todaysLetters.length - 5);
-            cluesToReveal.push(0);
-        };
-
-        // populate screen
-        welcomeDiv.textContent = "Welcome,";
-        userDiv.textContent = username;
-        scoreLabelDiv.textContent = "Score";
-        scoreNumDiv.textContent = todaysScore.score;
-        console.log('rowScore: ', rowScore);
-        console.log('cluesToReveal: ', cluesToReveal);
-        console.log('lettersToReveal: ', lettersToReveal);
-        }
-
-    
+    };    
 });
 
 // on 'login' button click
