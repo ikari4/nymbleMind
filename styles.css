@@ -4,12 +4,26 @@ body {
     color: #033f63;
     /* background-color: #033f631a; */
     display: flex;
+    flex-direction: column;
     justify-content: center;
+}
+
+#loginTitle {
+    font-size: 40px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 #loginModal input {
     font-size: 20px;
     margin-bottom: 15px;
+}
+
+#loginModal label {
+    display: block;
 }
 
 #outerDiv {
@@ -78,11 +92,16 @@ body {
 #clueDiv {
     display: flex;
     flex-direction: column;
+    height: 87px;
+    margin: 10px 0;
 }
 
 .clueNDiv {
     display: flex;
     flex-direction: row;
+    gap: 10px;
+    font-size: 24px;
+    width: 370px;
 }
 
 #btnDiv {
@@ -93,4 +112,9 @@ body {
 #btnTopDiv {
     display: flex;
     flex-direction: row;
+}
+
+.button {
+    width: 80px;
+    height: 40px;
 }

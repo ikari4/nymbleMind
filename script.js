@@ -1,25 +1,43 @@
 // script.js
 
-function getISOWeek(date) {
-    const d = new Date(date);
+function getISOWeekAndYear(dateString) {
+  const [year, month, day] = dateString.split('-').map(Number);
 
-    // set to nearest Thursday (ISO week starts Monday)
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const d = new Date(year, month - 1, day);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
 
-    const yearStart = new Date(d.getFullYear(), 0, 1);
+  const currentYear = d.getFullYear();
+  const yearStart = new Date(currentYear, 0, 1);
 
-    const weekNo = Math.ceil(
-    ((d - yearStart) / 86400000 + 1) / 7
-    );
+  const currentWeek = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
 
-    return weekNo;
+  return { currentYear, currentWeek };
 }
 
-function getISOYear(date) {
-    const d = new Date(date);
-    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-    return d.getFullYear();
+function revealClues(todaysClues, cluesToReveal, clueElements) {
+    cluesToReveal.forEach((i) => {
+        const clueNumberEl = clueElements[i]?.num;
+        const clueTextEl = clueElements[i]?.text;
+
+        if (clueNumberEl) {
+            clueNumberEl.textContent = i + 1 + '. ';
+        }
+
+        if (clueTextEl) {
+            clueTextEl.textContent = todaysClues.clue[i];
+        }
+    });
+}
+
+function revealLetters(todaysLetters, lettersToReveal) {
+    lettersToReveal.forEach(index => {
+        const input = document.querySelector(`input[name="entry${index}"]`);
+        
+        if (input) {
+            input.value = todaysLetters[index]; // reveal the letter
+        }
+    });
 }
 
 // main script begins here
@@ -34,9 +52,12 @@ window.addEventListener("load", async() => {
     const scoreLabelDiv = document.getElementById("scoreLabelDiv");
     const scoreNumDiv = document.getElementById("scoreNumDiv");
     const wordDiv = document.getElementById("wordDiv");
-    const clue0Div = document.getElementById("clue0Div");
-    const clue1Div = document.getElementById("clue1Div");
-    const clue2Div = document.getElementById("clue2Div");
+    const clue0DivNum = document.getElementById("clue0DivNum");
+    const clue0DivText = document.getElementById("clue0DivText");
+    const clue1DivNum = document.getElementById("clue1DivNum");
+    const clue1DivText = document.getElementById("clue1DivText");    
+    const clue2DivNum = document.getElementById("clue2DivNum");
+    const clue2DivText = document.getElementById("clue2DivText");   
     const btnDivTop = document.getElementById("btnDivTop");
     const btnDivBottom = document.getElementById("btnDivBottom");
     const standingsDiv = document.getElementById("standingsDiv");
@@ -52,8 +73,7 @@ window.addEventListener("load", async() => {
         // initialize username and dates
         const getTheDate = new Date();
         const currentDate = getTheDate.toISOString().slice(0, 10);
-        const currentWeek = getISOWeek(currentDate);
-        const currentYear = getISOYear(currentDate);
+        const { currentYear, currentWeek } = getISOWeekAndYear(currentDate);
 
         // initialize arrays
         const cluesToReveal = [];
@@ -69,6 +89,33 @@ window.addEventListener("load", async() => {
             week: currentWeek,
             year: currentYear
         };
+        const clueElements = {
+            0: { num: clue0DivNum, text: clue0DivText },
+            1: { num: clue1DivNum, text: clue1DivText },
+            2: { num: clue2DivNum, text: clue2DivText },
+        };
+
+        // get today's word from database
+        const resWord = await fetch("/api/getTodaysWord", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ currentDate })
+        });
+
+        const resultWord = await resWord.json();
+        const rowWord = resultWord[0];
+        const todaysWord = rowWord.word;
+        const todaysClues = {
+            clue: {
+                0: rowWord.clue0,
+                1: rowWord.clue1,
+                2: rowWord.clue2
+            }
+        };
+
+        const todaysLetters = todaysWord.split("");
 
         // check to see if user has already played today
         const resScore = await fetch("/api/getTodaysScore", {
@@ -99,6 +146,16 @@ window.addEventListener("load", async() => {
         } else {
             todaysScore.score = 10 + 2 * (todaysLetters.length - 5);
             cluesToReveal.push(0);
+            todaysScore.clue0Revealed = 1;
+
+            // write new game to database
+            const resSave = await fetch("/api/initialScoreSave", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ todaysScore })
+            });
         };
 
         // populate screen
@@ -106,31 +163,6 @@ window.addEventListener("load", async() => {
         userDiv.textContent = username;
         scoreLabelDiv.textContent = "Score";
         scoreNumDiv.textContent = todaysScore.score;
-        console.log('rowScore: ', rowScore);
-        console.log('cluesToReveal: ', cluesToReveal);
-        console.log('lettersToReveal: ', lettersToReveal);
-        
-
-        // get today's word from database
-        const resWord = await fetch("/api/getTodaysWord", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ currentDate })
-        });
-
-        const resultWord = await resWord.json();
-        const rowWord = resultWord[0];
-        const todaysWord = rowWord.word;
-        const todaysClues = {
-            clue: {
-                0: rowWord.clue0,
-                1: rowWord.clue1,
-                2: rowWord.clue2
-            }
-        };
-        const todaysLetters = todaysWord.split("");
 
         // create letter box inputs
         todaysLetters.forEach((_, i) => {
@@ -162,13 +194,59 @@ window.addEventListener("load", async() => {
                     }
                 }
             });
+
+            // focus first input
+            const first = document.querySelector('[name="entry0"]');
+            if (first) first.focus();
+
             wordDiv.appendChild(input);
         });
 
-        // focus first input
-        const first = document.querySelector('[name="entry0"]');
-        if (first) first.focus();
-    };    
+        // update screen
+        revealClues(todaysClues, cluesToReveal, clueElements);
+        
+        // create buy clue button
+        const buyClueBtn = document.createElement("button");
+        buyClueBtn.classList = "button";
+        buyClueBtn.innerHTML = "Buy Clue";
+        buyClueBtn.addEventListener("click", async () => {
+            const max = Math.max(...cluesToReveal);
+            cluesToReveal.push(max + 1);
+            if (max == 0) {
+                todaysScore.score -= 2; 
+            } else {
+                todaysScore.score -= 3;
+            }
+            revealClues(todaysClues, cluesToReveal, clueElements);
+            scoreNumDiv.textContent = todaysScore.score;
+            // updateScores
+            // btnDisabler
+        })
+        btnDivTop.appendChild(buyClueBtn);
+
+        // create buy letter button
+        const buyLetterBtn = document.createElement("button");
+        buyLetterBtn.classList = "button";
+        buyLetterBtn.innerHTML = "Buy Letter";
+        buyLetterBtn.addEventListener("click", async () => {
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * todaysLetters.length);
+            } 
+            while (lettersToReveal.includes(randomIndex));
+            lettersToReveal.push(randomIndex);
+            todaysScore.score -= 2;
+            revealLetters(todaysLetters, lettersToReveal);
+            scoreNumDiv.textContent = todaysScore.score
+            console.log('lettersToReveal: ', lettersToReveal);
+
+
+
+        })
+        btnDivTop.appendChild(buyLetterBtn);
+    }; 
+
+
 });
 
 // on 'login' button click
