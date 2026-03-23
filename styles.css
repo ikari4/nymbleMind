@@ -79,21 +79,33 @@ body {
 }
 
 .letterBox {
-  flex: 1;
-  min-width: 0;
-  text-align: center;
-  font-size: 20px;
-  border: none;
-  border-bottom: 2px solid black;
-  margin-right: 8px;
-  outline: none;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    font-size: 24px;
+    border: none;
+    border-bottom: 2px solid black;
+    margin-right: 8px;
+    outline: none;
+    font-family: 'Fredoka', Arial, sans-serif;
+    color: #033f63;
+}
+
+.letterBox.locked {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
 }
 
 #clueDiv {
     display: flex;
     flex-direction: column;
-    height: 87px;
+    height: 116px;
     margin: 10px 0;
+}
+
+#clueTitleDiv {
+    font-size: 24px;
+    font-weight: bold; 
 }
 
 .clueNDiv {
@@ -107,14 +119,42 @@ body {
 #btnDiv {
     display: flex;
     flex-direction: column;
+    gap: 10px;
 }
 
-#btnTopDiv {
+#btnDivTop {
     display: flex;
     flex-direction: row;
+    gap: 10px;
+}
+
+#btnDivBottom {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
 }
 
 .button {
-    width: 80px;
+    width: 150px;
     height: 40px;
+    font-family: 'Fredoka', Arial, sans-serif;
+    font-size: 20px;
+    color: #033f63;
+}
+
+#scoringDiv {
+    display: flex;
+    flex-direction: column;
+    height: 116px;
+    margin: 20px 0;
+    width: 370px;
+}
+
+#scoringTitle {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#scoringBody {
+    white-space: pre-wrap;
 }

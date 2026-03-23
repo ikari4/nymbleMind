@@ -36,6 +36,8 @@ function revealLetters(todaysLetters, lettersToReveal) {
         
         if (input) {
             input.value = todaysLetters[index]; // reveal the letter
+            input.readOnly = true;             // lock the input
+            input.classList.add("locked");
         }
     });
 }
@@ -52,6 +54,7 @@ window.addEventListener("load", async() => {
     const scoreLabelDiv = document.getElementById("scoreLabelDiv");
     const scoreNumDiv = document.getElementById("scoreNumDiv");
     const wordDiv = document.getElementById("wordDiv");
+    const clueTitleDiv = document.getElementById("clueTitleDiv");
     const clue0DivNum = document.getElementById("clue0DivNum");
     const clue0DivText = document.getElementById("clue0DivText");
     const clue1DivNum = document.getElementById("clue1DivNum");
@@ -61,6 +64,13 @@ window.addEventListener("load", async() => {
     const btnDivTop = document.getElementById("btnDivTop");
     const btnDivBottom = document.getElementById("btnDivBottom");
     const standingsDiv = document.getElementById("standingsDiv");
+    const scoringTitle = document.getElementById("scoringTitle");
+    const scoringBody = document.getElementById("scoringBody");
+    const scoreBody1 = document.createElement("div");
+    const scoreBody2 = document.createElement("div");
+    const scoreBody3 = document.createElement("div");
+    const scoreBody4 = document.createElement("div");
+    const scoreBody5 = document.createElement("div");
     const username = localStorage.getItem("username");
     const playerId = localStorage.getItem("playerId"); 
     
@@ -163,6 +173,18 @@ window.addEventListener("load", async() => {
         userDiv.textContent = username;
         scoreLabelDiv.textContent = "Score";
         scoreNumDiv.textContent = todaysScore.score;
+        scoringTitle.textContent = "Scoring";
+        scoreBody1.textContent = "Clue 1 :         Free!";
+        scoreBody2.textContent = "Clue 2 :         2 points";
+        scoreBody3.textContent = "Clue 3 :         3 points";
+        scoreBody4.textContent = "Letters :        2 points each";
+        scoreBody5.textContent = "Bad Guess:     2 points";
+        scoringBody.appendChild(scoreBody1);
+        scoringBody.appendChild(scoreBody2);
+        scoringBody.appendChild(scoreBody3);
+        scoringBody.appendChild(scoreBody4);
+        scoringBody.appendChild(scoreBody5);
+        
 
         // create letter box inputs
         todaysLetters.forEach((_, i) => {
@@ -173,37 +195,57 @@ window.addEventListener("load", async() => {
             input.name = `entry${i}`;
             input.className = "letterBox";
 
-            // move to next input on input
+            // Move forward on input
             input.addEventListener("input", () => {
-                if (input.value.length === 1) {
-                    const next = document.querySelector(`[name="entry${i + 1}"]`);
-                    if (next) next.focus();
+                if (input.readOnly) return; // never move focus on locked inputs
+
+                // Find the next editable input
+                let nextIndex = i + 1;
+                while (nextIndex < todaysLetters.length) {
+                    const next = document.querySelector(`[name="entry${nextIndex}"]`);
+                    if (next && !next.readOnly) {
+                        next.focus();
+                        break;
+                    }
+                    nextIndex++;
                 }
             });
 
-            // handle backspace
+            // Handle backspace
             input.addEventListener("keydown", (e) => {
                 if (e.key === "Backspace") {
-                    if (input.value === "") {
-                        const prev = document.querySelector(`[name="entry${i - 1}"]`);
-                        if (prev) {
-                        prev.focus();
-                        prev.value = "";
-                        e.preventDefault();
+                    e.preventDefault(); // always handle manually
+
+                    // If current input has value and is editable, clear it
+                    if (!input.readOnly && input.value !== "") {
+                        input.value = "";
+                        return;
+                    }
+
+                    // Otherwise, move to previous editable input
+                    let prevIndex = i - 1;
+                    while (prevIndex >= 0) {
+                        const prev = document.querySelector(`[name="entry${prevIndex}"]`);
+                        if (prev && !prev.readOnly) {
+                            prev.value = "";
+                            prev.focus();
+                            break;
                         }
+                        prevIndex--;
                     }
                 }
             });
-
             // focus first input
             const first = document.querySelector('[name="entry0"]');
             if (first) first.focus();
 
             wordDiv.appendChild(input);
         });
-
+        
         // update screen
+        clueTitleDiv.textContent = "Clues";
         revealClues(todaysClues, cluesToReveal, clueElements);
+        const scoreLine1 = "Sco"
         
         // create buy clue button
         const buyClueBtn = document.createElement("button");
@@ -238,12 +280,16 @@ window.addEventListener("load", async() => {
             todaysScore.score -= 2;
             revealLetters(todaysLetters, lettersToReveal);
             scoreNumDiv.textContent = todaysScore.score
-            console.log('lettersToReveal: ', lettersToReveal);
-
-
 
         })
         btnDivTop.appendChild(buyLetterBtn);
+    
+        // create guess word button
+        const guessWordBtn = document.createElement("button");
+        guessWordBtn.classList = "button";
+        guessWordBtn.innerHTML = "Guess Word";
+
+        btnDivBottom.appendChild(guessWordBtn);
     }; 
 
 
