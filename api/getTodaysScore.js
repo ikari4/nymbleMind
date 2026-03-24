@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     const result = await turso.execute(`
       SELECT *
       FROM Scores
-      WHERE date_played = ? AND player_id = ?
+      WHERE datePlayed = ? AND playerId = ?
     `, [currentDate, playerId]);
 
     res.status(200).json(result.rows);

@@ -42,10 +42,83 @@ function revealLetters(todaysLetters, lettersToReveal) {
     });
 }
 
+async function updateScores(todaysScore, lettersToReveal, cluesToReveal) {
+    cluesToReveal.forEach(i => {
+        const key = `clue${i}Revealed`;
+        todaysScore[key] = 1;
+    });
+
+    lettersToReveal.forEach(i => {
+        const key = `letter${i}Revealed`;
+        todaysScore[key] = 1;
+    });
+
+    const { playerId, datePlayed, week, year, score } = todaysScore;
+
+    await fetch("/api/updateScoreSave", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            playerId,
+            datePlayed,
+            week,
+            year,
+            score,
+            // send the full score object (already camelCase)
+            todaysScore
+        })
+    });
+}
+
+function btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
+    cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn) {
+    const score = todaysScore.score;
+
+    // score-based clue restrictions
+    if (score < 4 && cluesToReveal.includes(1)) {
+        buyClueBtn.disabled = true;
+    }
+
+    if (score < 3 && cluesToReveal.includes(0)) {
+        buyClueBtn.disabled = true;
+    }
+
+    // score-based letter restriction
+    if (score < 3) {
+        buyLetterBtn.disabled = true;
+    }
+
+    // game over condition
+    if (score < 1) {
+        alert("Game Over");
+        guessWordBtn.disabled = true;
+    }
+
+    // all clues revealed
+    if (cluesToReveal.length === todaysClues.length) {
+        buyClueBtn.disabled = true;
+    }
+
+    // all letters revealed
+    if (lettersToReveal.length === todaysLetters.length) {
+        buyLetterBtn.disabled = true;
+    }
+
+    // both fully revealed → disable guessing
+    if (
+        cluesToReveal.length === todaysClues.length &&
+        lettersToReveal.length === todaysLetters.length
+    ) {
+        guessWordBtn.disabled = true;
+    }
+}
+
 // main script begins here
 // on page load
 window.addEventListener("load", async() => {
-    // show login screen if user not logged in
+    
     const titleDiv = document.getElementById("titleDiv");
     const loginModal = document.getElementById("loginModal");
     const loginBtn = document.getElementById("loginBtn");
@@ -74,6 +147,7 @@ window.addEventListener("load", async() => {
     const username = localStorage.getItem("username");
     const playerId = localStorage.getItem("playerId"); 
     
+    // show login screen if user not logged in
     if(!username) {
         loginModal.style.display = "block";
         return;
@@ -184,7 +258,6 @@ window.addEventListener("load", async() => {
         scoringBody.appendChild(scoreBody3);
         scoringBody.appendChild(scoreBody4);
         scoringBody.appendChild(scoreBody5);
-        
 
         // create letter box inputs
         todaysLetters.forEach((_, i) => {
@@ -245,7 +318,8 @@ window.addEventListener("load", async() => {
         // update screen
         clueTitleDiv.textContent = "Clues";
         revealClues(todaysClues, cluesToReveal, clueElements);
-        const scoreLine1 = "Sco"
+        revealLetters(todaysLetters, lettersToReveal);
+        
         
         // create buy clue button
         const buyClueBtn = document.createElement("button");
@@ -261,8 +335,13 @@ window.addEventListener("load", async() => {
             }
             revealClues(todaysClues, cluesToReveal, clueElements);
             scoreNumDiv.textContent = todaysScore.score;
-            // updateScores
-            // btnDisabler
+            try {
+                await updateScores(todaysScore, lettersToReveal, cluesToReveal);
+            } catch (err) {
+                console.error("Failed to save score:", err);
+            }
+            btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
+                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
         })
         btnDivTop.appendChild(buyClueBtn);
 
@@ -280,7 +359,13 @@ window.addEventListener("load", async() => {
             todaysScore.score -= 2;
             revealLetters(todaysLetters, lettersToReveal);
             scoreNumDiv.textContent = todaysScore.score
-
+            try {
+                await updateScores(todaysScore, lettersToReveal, cluesToReveal);
+            } catch (err) {
+                console.error("Failed to save score:", err);
+            }
+            btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
+    cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
         })
         btnDivTop.appendChild(buyLetterBtn);
     
@@ -288,8 +373,19 @@ window.addEventListener("load", async() => {
         const guessWordBtn = document.createElement("button");
         guessWordBtn.classList = "button";
         guessWordBtn.innerHTML = "Guess Word";
-
+// event listenter
+            // try {
+            //     await updateScores(todaysScore, lettersToReveal, cluesToReveal);
+            // } catch (err) {
+            //     console.error("Failed to save score:", err);
+            // }
+            // btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
+    // cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
         btnDivBottom.appendChild(guessWordBtn);
+
+
+        btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
+    cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
     }; 
 
 

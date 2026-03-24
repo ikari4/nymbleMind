@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
     await turso.execute(
         `
-        INSERT INTO Scores (player_id, date_played, week, year, score, clue0_revealed)
+        INSERT INTO Scores (playerId, datePlayed, week, year, score, clue0Revealed)
         VALUES (?, ?, ?, ?, ?, ?)
         `,
         [playerId, datePlayed, week, year, score, clue0Revealed]

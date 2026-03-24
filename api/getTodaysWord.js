@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     const result = await turso.execute(`
       SELECT *
       FROM Words
-      WHERE date_played = ?
+      WHERE datePlayed = ?
     `, [currentDate]);
 
     res.status(200).json(result.rows);
