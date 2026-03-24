@@ -99,31 +99,37 @@ function btnDisabler(
     // score-based clue restrictions
     if (score < 4 && cluesToReveal.includes(1)) {
         buyClueBtn.disabled = true;
+        buyClueBtn.classList = "btnDisable";
     }
 
     if (score < 3 && cluesToReveal.includes(0)) {
         buyClueBtn.disabled = true;
+        buyClueBtn.classList = "btnDisable";
     }
 
     // score-based letter restriction
     if (score < 3) {
         buyLetterBtn.disabled = true;
+        buyLetterBtn.classList = "btnDisable";
     }
 
     // game over condition
     if (score < 1) {
         alert("Game Over");
         guessWordBtn.disabled = true;
+        guessWordBtn.classList = "btnDisable";
     }
 
     // all clues revealed
     if (cluesToReveal.length === totalClues) {
         buyClueBtn.disabled = true;
+        buyClueBtn.classList = "btnDisable";
     }
 
     // all letters revealed
     if (lettersToReveal.length === todaysLetters.length) {
         buyLetterBtn.disabled = true;
+        buyLetterBtn.classList = "btnDisable";
     }
 
     // both fully revealed → disable guessing
@@ -131,7 +137,9 @@ function btnDisabler(
         cluesToReveal.length === totalClues &&
         lettersToReveal.length === todaysLetters.length
     ) {
+        alert("Game Over");
         guessWordBtn.disabled = true;
+        guessWordBtn.classList = "btnDisable";
     }
 }
 
@@ -443,6 +451,19 @@ window.addEventListener("load", async() => {
             cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn);
     }; 
 
+});
+
+// splash screen fadeaway
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        const splash = document.getElementById("splash");
+        splash.style.opacity = "0";
+
+        setTimeout(() => {
+            splash.style.display = "none";
+            outerDiv.style.display = "block";
+        }, 500);
+    }, 3000);
 });
 
 // on 'login' button click
