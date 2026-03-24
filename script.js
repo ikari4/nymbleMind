@@ -118,6 +118,7 @@ function btnDisabler(
         alert("Game Over");
         guessWordBtn.disabled = true;
         guessWordBtn.classList = "btnDisable";
+        todaysScore.finalScore = score;
     }
 
     // all clues revealed
@@ -137,10 +138,85 @@ function btnDisabler(
         cluesToReveal.length === totalClues &&
         lettersToReveal.length === todaysLetters.length
     ) {
-        alert("Game Over");
         guessWordBtn.disabled = true;
         guessWordBtn.classList = "btnDisable";
     }
+}
+
+function buildStandingsTable(data) {
+    // data = array of score objects
+
+    const table = document.createElement("table");
+
+    // Get unique dates
+    const dates = [...new Set(data.map(d => d.datePlayed))].sort();
+
+    // Get unique players
+    const players = [...new Set(data.map(d => d.playerId))];
+
+    // ----- HEADER -----
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+
+    const thPlayer = document.createElement("th");
+    thPlayer.textContent = "Player";
+    headerRow.appendChild(thPlayer);
+
+    dates.forEach(date => {
+        const th = document.createElement("th");
+        th.textContent = date;
+        headerRow.appendChild(th);
+    });
+
+    const thTotal = document.createElement("th");
+    thTotal.textContent = "Total";
+    headerRow.appendChild(thTotal);
+
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // ----- BODY -----
+    const tbody = document.createElement("tbody");
+
+    players.forEach(playerId => {
+        const row = document.createElement("tr");
+
+        // Player cell
+        const tdPlayer = document.createElement("td");
+        tdPlayer.textContent = playerId;
+        row.appendChild(tdPlayer);
+
+        let total = 0;
+
+        // Score cells per date
+        dates.forEach(date => {
+            const td = document.createElement("td");
+
+            const match = data.find(
+                d => d.playerId === playerId && d.datePlayed === date
+            );
+
+            if (match) {
+                td.textContent = match.finalScore;
+                total += match.finalScore;
+            } else {
+                td.textContent = "-";
+            }
+
+            row.appendChild(td);
+        });
+
+        // Total cell
+        const tdTotal = document.createElement("td");
+        tdTotal.textContent = total;
+        row.appendChild(tdTotal);
+
+        tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+
+    standingsDiv.appendChild(table);
 }
 
 // main script begins here
@@ -421,6 +497,7 @@ window.addEventListener("load", async() => {
                 alert("Incorrect guess!");
             } else {
                 alert("Correct!");
+                todaysScore.finalScore = todaysScore.score;
 
                 for (let i = 0; i < todaysLetters.length; i++) {
                     if (!lettersToReveal.includes(i)) {
@@ -449,6 +526,21 @@ window.addEventListener("load", async() => {
         btnDivBottom.appendChild(guessWordBtn);
         btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
             cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn);
+    
+        // load standings
+        const resStand = await fetch("/api/getStandings", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ currentWeek })
+        });
+
+        const resultStand = await resStand.json();
+        // const rowStand = resultStand;
+        console.log(resultStand);
+        buildStandingsTable(resultStand);
+
     }; 
 
 });
@@ -461,7 +553,7 @@ window.addEventListener("load", () => {
 
         setTimeout(() => {
             splash.style.display = "none";
-            outerDiv.style.display = "block";
+            page.style.display = "block";
         }, 500);
     }, 3000);
 });
@@ -487,7 +579,7 @@ loginBtn.addEventListener("click", async () => {
     
     // save the date in local storage and reload page
     localStorage.setItem("username", data.user.username);
-    localStorage.setItem("playerId", data.user.player_id);
+    localStorage.setItem("playerId", data.user.playerId);
     document.getElementById("loginModal").style.display = "none";
     location.reload();
 });
