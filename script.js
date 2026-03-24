@@ -1,18 +1,29 @@
 // script.js
 
+
 function getISOWeekAndYear(dateString) {
-  const [year, month, day] = dateString.split('-').map(Number);
+    const [year, month, day] = dateString.split("-").map(Number);
 
-  const d = new Date(year, month - 1, day);
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    // Create UTC date
+    const date = new Date(Date.UTC(year, month - 1, day));
 
-  const currentYear = d.getFullYear();
-  const yearStart = new Date(currentYear, 0, 1);
+    // Shift to nearest Thursday (ISO rule)
+    const tempDate = new Date(date);
+    tempDate.setUTCDate(tempDate.getUTCDate() + 3 - ((tempDate.getUTCDay() + 6) % 7));
 
-  const currentWeek = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    const currentYear = tempDate.getUTCFullYear();
 
-  return { currentYear, currentWeek };
+    // First Thursday of ISO year
+    const firstThursday = new Date(Date.UTC(currentYear, 0, 4));
+    firstThursday.setUTCDate(
+        firstThursday.getUTCDate() + 3 - ((firstThursday.getUTCDay() + 6) % 7)
+    );
+
+    const currentWeek = 1 + Math.round(
+        (tempDate - firstThursday) / (7 * 24 * 60 * 60 * 1000)
+    );
+
+    return { currentYear, currentWeek };
 }
 
 function revealClues(todaysClues, cluesToReveal, clueElements) {
@@ -72,9 +83,18 @@ async function updateScores(todaysScore, lettersToReveal, cluesToReveal) {
     });
 }
 
-function btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-    cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn) {
+function btnDisabler(
+    todaysScore,
+    todaysLetters,
+    todaysClues,
+    lettersToReveal,
+    cluesToReveal,
+    buyClueBtn,
+    buyLetterBtn,
+    guessWordBtn
+) {
     const score = todaysScore.score;
+    const totalClues = Object.keys(todaysClues.clue).length;
 
     // score-based clue restrictions
     if (score < 4 && cluesToReveal.includes(1)) {
@@ -97,7 +117,7 @@ function btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal,
     }
 
     // all clues revealed
-    if (cluesToReveal.length === todaysClues.length) {
+    if (cluesToReveal.length === totalClues) {
         buyClueBtn.disabled = true;
     }
 
@@ -108,7 +128,7 @@ function btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal,
 
     // both fully revealed → disable guessing
     if (
-        cluesToReveal.length === todaysClues.length &&
+        cluesToReveal.length === totalClues &&
         lettersToReveal.length === todaysLetters.length
     ) {
         guessWordBtn.disabled = true;
@@ -268,11 +288,11 @@ window.addEventListener("load", async() => {
             input.name = `entry${i}`;
             input.className = "letterBox";
 
-            // Move forward on input
+            // move forward on input
             input.addEventListener("input", () => {
                 if (input.readOnly) return; // never move focus on locked inputs
 
-                // Find the next editable input
+                // find the next editable input
                 let nextIndex = i + 1;
                 while (nextIndex < todaysLetters.length) {
                     const next = document.querySelector(`[name="entry${nextIndex}"]`);
@@ -284,18 +304,18 @@ window.addEventListener("load", async() => {
                 }
             });
 
-            // Handle backspace
+            // handle backspace
             input.addEventListener("keydown", (e) => {
                 if (e.key === "Backspace") {
                     e.preventDefault(); // always handle manually
 
-                    // If current input has value and is editable, clear it
+                    // if current input has value and is editable, clear it
                     if (!input.readOnly && input.value !== "") {
                         input.value = "";
                         return;
                     }
 
-                    // Otherwise, move to previous editable input
+                    // otherwise, move to previous editable input
                     let prevIndex = i - 1;
                     while (prevIndex >= 0) {
                         const prev = document.querySelector(`[name="entry${prevIndex}"]`);
@@ -320,7 +340,6 @@ window.addEventListener("load", async() => {
         revealClues(todaysClues, cluesToReveal, clueElements);
         revealLetters(todaysLetters, lettersToReveal);
         
-        
         // create buy clue button
         const buyClueBtn = document.createElement("button");
         buyClueBtn.classList = "button";
@@ -342,7 +361,7 @@ window.addEventListener("load", async() => {
             }
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
                 cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
-        })
+        });
         btnDivTop.appendChild(buyClueBtn);
 
         // create buy letter button
@@ -365,29 +384,64 @@ window.addEventListener("load", async() => {
                 console.error("Failed to save score:", err);
             }
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-    cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
-        })
+                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
+        });
         btnDivTop.appendChild(buyLetterBtn);
     
         // create guess word button
         const guessWordBtn = document.createElement("button");
         guessWordBtn.classList = "button";
         guessWordBtn.innerHTML = "Guess Word";
-// event listenter
-            // try {
-            //     await updateScores(todaysScore, lettersToReveal, cluesToReveal);
-            // } catch (err) {
-            //     console.error("Failed to save score:", err);
-            // }
-            // btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-    // cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
+        guessWordBtn.addEventListener("click", async () => {
+            let wordGuess = "";
+
+            // check for blanks + build word
+            for (let i = 0; i < todaysLetters.length; i++) {
+                const input = document.querySelector(`[name="entry${i}"]`);
+
+                if (!input || input.value.trim() === "") {
+                    alert("Please fill in all letters before guessing.");
+                    return;
+                }
+
+                wordGuess += input.value.toLowerCase();
+            }
+
+            // compare guess
+            if (wordGuess !== todaysWord.toLowerCase()) {
+                todaysScore.score -= 2;
+                alert("Incorrect guess!");
+            } else {
+                alert("Correct!");
+
+                for (let i = 0; i < todaysLetters.length; i++) {
+                    if (!lettersToReveal.includes(i)) {
+                        lettersToReveal.push(i);
+                    }
+                }
+                Object.keys(todaysClues.clue).forEach(key => {
+                    const index = parseInt(key);
+
+                    if (!cluesToReveal.includes(index)) {
+                        cluesToReveal.push(index);
+                    }
+                });
+            }
+            
+            revealLetters(todaysLetters, lettersToReveal);
+            revealClues(todaysClues, cluesToReveal, clueElements);
+            try {
+                await updateScores(todaysScore, lettersToReveal, cluesToReveal);
+            } catch (err) {
+                console.error("Failed to save score:", err);
+            }
+            btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
+                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
+        });
         btnDivBottom.appendChild(guessWordBtn);
-
-
         btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-    cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
+            cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn);
     }; 
-
 
 });
 
