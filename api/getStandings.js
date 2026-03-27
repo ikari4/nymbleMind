@@ -9,22 +9,23 @@ const turso = createClient({
 
 export default async function handler(req, res) {
   try {
-    const { currentWeek } = req.body;
+    const { currentWeek, currentYear } = req.body;
 
     const result = await turso.execute(
         `
         SELECT 
             s.playerId,
             s.datePlayed,
+            s.day,
             s.week,
             s.year,
             s.finalScore,
             p.username
         FROM Scores s
         JOIN Players p ON s.playerId = p.playerId
-        WHERE s.week = ?
+        WHERE s.week = ? and s.year = ?
         `,
-        [currentWeek]
+        [currentWeek, currentYear]
     );
 
     res.status(200).json(result.rows);

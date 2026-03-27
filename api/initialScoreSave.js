@@ -14,6 +14,7 @@ export default async function handler(req, res) {
     const {
         playerId,
         datePlayed,
+        day,
         week,
         year,
         score,
@@ -22,10 +23,10 @@ export default async function handler(req, res) {
 
     await turso.execute(
         `
-        INSERT INTO Scores (playerId, datePlayed, week, year, score, clue0Revealed)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO Scores (playerId, datePlayed, day, week, year, score, clue0Revealed)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         `,
-        [playerId, datePlayed, week, year, score, clue0Revealed]
+        [playerId, datePlayed, day, week, year, score, clue0Revealed]
     );
 
     res.status(200).json({ success: true });

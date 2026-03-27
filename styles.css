@@ -156,39 +156,115 @@ body {
 }
 
 .button {
-    width: 150px;
-    height: 40px;
-    font-family: 'Fredoka', Arial, sans-serif;
-    font-size: 20px;
-    color: white;
+    user-select: none;
+    -webkit-user-select: none;
     background-color: #033f63;
+    color: white;
+    border: none;
+    min-height: 44px; /* recommended minimum for iOS */
+    border-radius: 8px; /* slightly larger for iOS feel */
+    padding: 10px 14px;
+    font-size: 15px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent; /* remove gray flash on iOS */
+
+    transition: transform 0.1s ease, background-color 0.2s ease;
+
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-.btnDisable {
-    width: 150px;
-    height: 40px;
-    font-family: 'Fredoka', Arial, sans-serif;
-    font-size: 20px;
-    background-color: #a3b5c2; /* desaturated version */
-    color: #f5f5f5;
+.button:active {
+    transform: scale(0.96);
+    background-color: #02507a;
+}
+
+.button:disabled {
+    background-color: #b0c4d6;
+    color: #ffffff;
     cursor: not-allowed;
     opacity: 0.7;
+    box-shadow: none;
 }
 
 #scoringDiv {
     display: flex;
     flex-direction: column;
     height: 116px;
-    margin: 20px 0;
     width: 370px;
 }
 
-#scoringTitle {
+#scoringTitle, #standingsTitle {
     font-size: 24px;
     font-weight: bold;
+    width: 370px;
 }
 
 #scoringBody {
     white-space: pre-wrap;
 }
 
+hr {
+    width: 370px;
+    background-color: #033f63;
+    margin: 25px;
+}
+
+#scoreTable {
+    width: 370px;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    margin: 10px auto;
+    background-color: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+#scoreTable th {
+    background-color: #033f63;
+    color: white;
+    padding: 8px 6px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Cells */
+#scoreTable td {
+    padding: 6px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+/* Player column left aligned */
+#scoreTable td:first-child {
+    text-align: left;
+    font-weight: 600;
+}
+
+/* Zebra striping */
+#scoreTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Hover effect */
+#scoreTable tr:hover {
+    background-color: #f1f7fb;
+}
+
+/* Total column emphasis */
+#scoreTable td:last-child {
+    font-weight: bold;
+}
+
+/* Header row rounding fix */
+#scoreTable tr:first-child th:first-child {
+    border-top-left-radius: 8px;
+}
+
+#scoreTable tr:first-child th:last-child {
+    border-top-right-radius: 8px;
+}

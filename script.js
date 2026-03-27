@@ -1,29 +1,29 @@
 // script.js
 
 
-function getISOWeekAndYear(dateString) {
-    const [year, month, day] = dateString.split("-").map(Number);
+function getISOWeekAndYear() {
 
-    // Create UTC date
-    const date = new Date(Date.UTC(year, month - 1, day));
+    const dateUTC = new Date();
+    const dateLocal = dateUTC.toLocaleString('en-ca');
 
-    // Shift to nearest Thursday (ISO rule)
-    const tempDate = new Date(date);
-    tempDate.setUTCDate(tempDate.getUTCDate() + 3 - ((tempDate.getUTCDay() + 6) % 7));
+    // split string into yyyy mm dd, then create new date
+    const a = dateLocal.split(/\D/);
+    const date = new Date(a[0], a[1]-1, a[2]);
 
-    const currentYear = tempDate.getUTCFullYear();
+    // set date to Thursday of week
+    const currentDay = date.getDay();
+    const currentYear = date.getFullYear();
+    const tempDay = (currentDay + 6) % 7;
+    date.setDate(date.getDate() - tempDay + 3);
 
-    // First Thursday of ISO year
-    const firstThursday = new Date(Date.UTC(currentYear, 0, 4));
-    firstThursday.setUTCDate(
-        firstThursday.getUTCDate() + 3 - ((firstThursday.getUTCDay() + 6) % 7)
-    );
+    // find the first day of the year
+    const yearStart = new Date(currentYear, 0, 1);
+    
+    // find weekNo based on count from first Thursday
+    const currentWeek = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+    const currentDate = dateLocal.split(',')[0];
 
-    const currentWeek = 1 + Math.round(
-        (tempDate - firstThursday) / (7 * 24 * 60 * 60 * 1000)
-    );
-
-    return { currentYear, currentWeek };
+    return { currentDate, currentWeek, currentDay, currentYear };
 }
 
 function revealClues(todaysClues, cluesToReveal, clueElements) {
@@ -64,7 +64,7 @@ async function updateScores(todaysScore, lettersToReveal, cluesToReveal) {
         todaysScore[key] = 1;
     });
 
-    const { playerId, datePlayed, week, year, score } = todaysScore;
+    const { playerId, datePlayed, day, week, year, score } = todaysScore;
 
     await fetch("/api/updateScoreSave", {
         method: "POST",
@@ -74,10 +74,10 @@ async function updateScores(todaysScore, lettersToReveal, cluesToReveal) {
         body: JSON.stringify({
             playerId,
             datePlayed,
+            day,
             week,
             year,
             score,
-            // send the full score object (already camelCase)
             todaysScore
         })
     });
@@ -143,78 +143,97 @@ function btnDisabler(
     }
 }
 
+async function loadStandings(currentWeek, currentYear) {
+
+    const resStand = await fetch("/api/getStandings", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ currentWeek, currentYear })
+    });
+
+    const resultStand = await resStand.json();
+
+    buildStandingsTable(resultStand);
+   
+}
+
 function buildStandingsTable(data) {
-    // data = array of score objects
 
-    const table = document.createElement("table");
+    const standingsTitle = document.getElementById("standingsTitle");
+    standingsTitle.textContent = "Standings";
 
-    // Get unique dates
-    const dates = [...new Set(data.map(d => d.datePlayed))].sort();
+    const dayMap = {
+        "1": "M",
+        "2": "Tu",
+        "3": "W",
+        "4": "Th",
+        "5": "F"
+    };
 
-    // Get unique players
-    const players = [...new Set(data.map(d => d.playerId))];
+    // Build structure
+    const users = {};
 
-    // ----- HEADER -----
-    const thead = document.createElement("thead");
-    const headerRow = document.createElement("tr");
+    data.forEach(entry => {
+        const { username, day, finalScore } = entry;
 
-    const thPlayer = document.createElement("th");
-    thPlayer.textContent = "Player";
-    headerRow.appendChild(thPlayer);
+        if (!users[username]) {
+            users[username] = { M: "", Tu: "", W: "", Th: "", F: "" };
+        }
 
-    dates.forEach(date => {
-        const th = document.createElement("th");
-        th.textContent = date;
-        headerRow.appendChild(th);
+        const weekday = dayMap[day];
+        if (weekday) {
+            users[username][weekday] = finalScore ?? "";
+        }
     });
 
-    const thTotal = document.createElement("th");
-    thTotal.textContent = "Total";
-    headerRow.appendChild(thTotal);
+    const table = document.getElementById("scoreTable");
 
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
+    // Header
+    table.innerHTML = `
+        <tr>
+            <th>Player</th>
+            <th>M</th>
+            <th>Tu</th>
+            <th>W</th>
+            <th>Th</th>
+            <th>F</th>
+            <th>Total</th>
+        </tr>
+    `;
 
-    // ----- BODY -----
-    const tbody = document.createElement("tbody");
+    // precompute + sort users by total descending
+    const sortedUsers = Object.entries(users)
+        .map(([username, scores]) => {
+            const total = Object.values(scores)
+                .filter(v => v != null && v !== "")
+                .map(Number)
+                .reduce((a, b) => a + b, 0);
 
-    players.forEach(playerId => {
-        const row = document.createElement("tr");
+            return { username, scores, total };
+        })
+        .sort((a, b) => b.total - a.total);
 
-        // Player cell
-        const tdPlayer = document.createElement("td");
-        tdPlayer.textContent = playerId;
-        row.appendChild(tdPlayer);
+    const clean = (v) =>
+        v == null || v === "" || v === "null" ? "-" : v;
 
-        let total = 0;
+    // render rows
+    sortedUsers.forEach(({ username, scores, total }) => {
+        const row = `
+            <tr>
+                <td>${username}</td>
+                <td>${clean(scores.M)}</td>
+                <td>${clean(scores.Tu)}</td>
+                <td>${clean(scores.W)}</td>
+                <td>${clean(scores.Th)}</td>
+                <td>${clean(scores.F)}</td>
+                <td>${total}</td>
+            </tr>
+        `;
 
-        // Score cells per date
-        dates.forEach(date => {
-            const td = document.createElement("td");
-
-            const match = data.find(
-                d => d.playerId === playerId && d.datePlayed === date
-            );
-
-            if (match) {
-                td.textContent = match.finalScore;
-                total += match.finalScore;
-            } else {
-                td.textContent = "-";
-            }
-
-            row.appendChild(td);
-        });
-
-        // Total cell
-        const tdTotal = document.createElement("td");
-        tdTotal.textContent = total;
-        row.appendChild(tdTotal);
-
-        tbody.appendChild(row);
+        table.insertAdjacentHTML("beforeend", row);
     });
-
-    table.appendChild(tbody);
 
     standingsDiv.appendChild(table);
 }
@@ -243,11 +262,6 @@ window.addEventListener("load", async() => {
     const standingsDiv = document.getElementById("standingsDiv");
     const scoringTitle = document.getElementById("scoringTitle");
     const scoringBody = document.getElementById("scoringBody");
-    const scoreBody1 = document.createElement("div");
-    const scoreBody2 = document.createElement("div");
-    const scoreBody3 = document.createElement("div");
-    const scoreBody4 = document.createElement("div");
-    const scoreBody5 = document.createElement("div");
     const username = localStorage.getItem("username");
     const playerId = localStorage.getItem("playerId"); 
     
@@ -259,9 +273,18 @@ window.addEventListener("load", async() => {
         titleDiv.textContent = "nymbleMind";       
         
         // initialize username and dates
-        const getTheDate = new Date();
-        const currentDate = getTheDate.toISOString().slice(0, 10);
-        const { currentYear, currentWeek } = getISOWeekAndYear(currentDate);
+        const { currentDate, currentWeek, currentDay, currentYear } = getISOWeekAndYear();
+
+        if(currentDay === 6 || currentDay === 7) {
+            // load standings
+            try {
+                await loadStandings(currentWeek, currentYear);
+            } catch (err) {
+                console.error("Failed to load standings:", err);
+            }
+            wordDiv.innerHTML = "Come Back Monday for Another Game!";
+            return;
+        }
 
         // initialize arrays
         const cluesToReveal = [];
@@ -274,6 +297,7 @@ window.addEventListener("load", async() => {
         const todaysScore = {
             playerId: playerId,
             datePlayed: currentDate,
+            day: currentDay,
             week: currentWeek,
             year: currentYear
         };
@@ -293,6 +317,7 @@ window.addEventListener("load", async() => {
         });
 
         const resultWord = await resWord.json();
+
         const rowWord = resultWord[0];
         const todaysWord = rowWord.word;
         const todaysClues = {
@@ -352,16 +377,15 @@ window.addEventListener("load", async() => {
         scoreLabelDiv.textContent = "Score";
         scoreNumDiv.textContent = todaysScore.score;
         scoringTitle.textContent = "Scoring";
-        scoreBody1.textContent = "Clue 1 :         Free!";
-        scoreBody2.textContent = "Clue 2 :         2 points";
-        scoreBody3.textContent = "Clue 3 :         3 points";
-        scoreBody4.textContent = "Letters :        2 points each";
-        scoreBody5.textContent = "Bad Guess:     2 points";
-        scoringBody.appendChild(scoreBody1);
-        scoringBody.appendChild(scoreBody2);
-        scoringBody.appendChild(scoreBody3);
-        scoringBody.appendChild(scoreBody4);
-        scoringBody.appendChild(scoreBody5);
+        const table = document.createElement("table");
+        table.innerHTML = `
+            <tr><td>Clue 1</td><td> - </td><td>Free!</td></tr>
+            <tr><td>Clue 2</td><td> - </td><td>2 points</td></tr>
+            <tr><td>Clue 3</td><td> - </td><td>3 points</td></tr>
+            <tr><td>Letters</td><td> - </td><td>2 points each</td></tr>
+            <tr><td>Bad Guess</td><td> - </td><td>2 points</td></tr>
+        `;
+        scoringBody.appendChild(table);
 
         // create letter box inputs
         todaysLetters.forEach((_, i) => {
@@ -515,34 +539,34 @@ window.addEventListener("load", async() => {
             
             revealLetters(todaysLetters, lettersToReveal);
             revealClues(todaysClues, cluesToReveal, clueElements);
+
             try {
                 await updateScores(todaysScore, lettersToReveal, cluesToReveal);
             } catch (err) {
                 console.error("Failed to save score:", err);
             }
+
+            try {
+                await loadStandings(currentWeek, currentYear);
+            } catch (err) {
+                console.error("Failed to load standings:", err);
+            }
+
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
                 cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
         });
+
         btnDivBottom.appendChild(guessWordBtn);
         btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
             cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn);
     
         // load standings
-        const resStand = await fetch("/api/getStandings", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ currentWeek })
-        });
-
-        const resultStand = await resStand.json();
-        // const rowStand = resultStand;
-        console.log(resultStand);
-        buildStandingsTable(resultStand);
-
+        try {
+            await loadStandings(currentWeek, currentYear);
+        } catch (err) {
+            console.error("Failed to load standings:", err);
+        }
     }; 
-
 });
 
 // splash screen fadeaway

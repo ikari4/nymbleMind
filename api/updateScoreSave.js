@@ -7,7 +7,7 @@ const turso = createClient({
 
 export default async function handler(req, res) {
     try {
-        const { todaysScore, playerId, datePlayed, week, year, score } = req.body;
+        const { todaysScore, playerId, datePlayed, day, week, year, score } = req.body;
 
         // Convert todaysScore into column/value pairs (NO transformation)
         const updates = Object.entries(todaysScore).map(([column, value]) => ({
@@ -19,6 +19,7 @@ export default async function handler(req, res) {
         const baseColumns = [
             { column: "playerId", value: playerId },
             { column: "datePlayed", value: datePlayed },
+            { column: "day", value: day},
             { column: "week", value: week },
             { column: "year", value: year },
             { column: "score", value: score }
