@@ -42,6 +42,12 @@ function revealClues(todaysClues, cluesToReveal, clueElements) {
 }
 
 function revealLetters(todaysLetters, lettersToReveal) {
+    document.querySelectorAll('input[name^="entry"]').forEach(input => {
+        if (!input.classList.contains("locked")) {
+            input.value = "";
+        }
+    });
+    
     lettersToReveal.forEach(index => {
         const input = document.querySelector(`input[name="entry${index}"]`);
         
@@ -512,7 +518,9 @@ window.addEventListener("load", async() => {
             // compare guess
             if (wordGuess !== todaysWord.toLowerCase()) {
                 todaysScore.score -= 2;
-                alert("Incorrect guess!");
+                scoreNumDiv.textContent = todaysScore.score;
+                console.log("wrong");
+                // alert("Incorrect guess!");
             } else {
                 alert("Correct!");
                 todaysScore.finalScore = todaysScore.score;
@@ -530,7 +538,7 @@ window.addEventListener("load", async() => {
                     }
                 });
             }
-            
+            console.log("i got here");
             revealLetters(todaysLetters, lettersToReveal);
             revealClues(todaysClues, cluesToReveal, clueElements);
 
