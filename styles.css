@@ -164,7 +164,7 @@ body {
     min-height: 44px; /* recommended minimum for iOS */
     border-radius: 8px; /* slightly larger for iOS feel */
     padding: 10px 14px;
-    font-size: 15px;
+    font-size: 20px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 
     cursor: pointer;
@@ -188,10 +188,18 @@ body {
     box-shadow: none;
 }
 
+.btnDisable {
+    min-height: 44px; /* recommended minimum for iOS */
+    border-radius: 8px; /* slightly larger for iOS feel */
+    padding: 10px 14px;
+    font-size: 20px;
+    border: none;
+    cursor: not-allowed;
+}
+
 #scoringDiv {
     display: flex;
     flex-direction: column;
-    height: 116px;
     width: 370px;
 }
 
@@ -208,7 +216,17 @@ body {
 hr {
     width: 370px;
     background-color: #033f63;
-    margin: 25px;
+    margin: 50px;
+}
+
+#hr1, #hr2, #hr3 {
+    height:1px;
+    width: 370px;
+    margin: 20px;
+}
+
+.lines {
+    background-color: #033f63;
 }
 
 #scoreTable {

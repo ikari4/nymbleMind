@@ -262,8 +262,12 @@ window.addEventListener("load", async() => {
     const standingsDiv = document.getElementById("standingsDiv");
     const scoringTitle = document.getElementById("scoringTitle");
     const scoringBody = document.getElementById("scoringBody");
-    const username = localStorage.getItem("username");
-    const playerId = localStorage.getItem("playerId"); 
+    const hr1 = document.getElementById("hr1");
+    const hr2 = document.getElementById("hr2");
+    const hr3 = document.getElementById("hr3");
+    const logout = document.getElementById("logout");
+    const username = localStorage.getItem("nymname");
+    const playerId = localStorage.getItem("nymId"); 
     
     // show login screen if user not logged in
     if(!username) {
@@ -376,16 +380,6 @@ window.addEventListener("load", async() => {
         userDiv.textContent = username;
         scoreLabelDiv.textContent = "Score";
         scoreNumDiv.textContent = todaysScore.score;
-        scoringTitle.textContent = "Scoring";
-        const table = document.createElement("table");
-        table.innerHTML = `
-            <tr><td>Clue 1</td><td> - </td><td>Free!</td></tr>
-            <tr><td>Clue 2</td><td> - </td><td>2 points</td></tr>
-            <tr><td>Clue 3</td><td> - </td><td>3 points</td></tr>
-            <tr><td>Letters</td><td> - </td><td>2 points each</td></tr>
-            <tr><td>Bad Guess</td><td> - </td><td>2 points</td></tr>
-        `;
-        scoringBody.appendChild(table);
 
         // create letter box inputs
         todaysLetters.forEach((_, i) => {
@@ -559,13 +553,40 @@ window.addEventListener("load", async() => {
         btnDivBottom.appendChild(guessWordBtn);
         btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
             cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn);
-    
+        hr1.classList.add("lines");
+
         // load standings
+        
         try {
             await loadStandings(currentWeek, currentYear);
         } catch (err) {
             console.error("Failed to load standings:", err);
         }
+        hr2.classList.add("lines");
+
+        // show scoring
+        scoringTitle.textContent = "Scoring";
+        const table = document.createElement("table");
+        table.innerHTML = `
+            <tr><td>Clue 1</td><td> - </td><td>Free!</td></tr>
+            <tr><td>Clue 2</td><td> - </td><td>2 points</td></tr>
+            <tr><td>Clue 3</td><td> - </td><td>3 points</td></tr>
+            <tr><td>Letters</td><td> - </td><td>2 points each</td></tr>
+            <tr><td>Bad Guess</td><td> - </td><td>2 points</td></tr>
+        `;
+        scoringBody.appendChild(table);
+        hr3.classList.add("lines");
+
+        // logout button
+        const logoutBtn = document.createElement("button");
+        logoutBtn.classList = "button";
+        logoutBtn.innerHTML = "Logout";
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem('nymname');
+            localStorage.removeItem('nymId');
+            location.reload();
+        });
+        logout.appendChild(logoutBtn);
     }; 
 });
 
@@ -602,8 +623,8 @@ loginBtn.addEventListener("click", async () => {
     }
     
     // save the date in local storage and reload page
-    localStorage.setItem("username", data.user.username);
-    localStorage.setItem("playerId", data.user.playerId);
+    localStorage.setItem("nymname", data.user.username);
+    localStorage.setItem("nymId", data.user.playerId);
     document.getElementById("loginModal").style.display = "none";
     location.reload();
 });
