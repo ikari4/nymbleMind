@@ -301,16 +301,16 @@ window.addEventListener("load", async() => {
         // initialize username and dates
         const { currentDate, currentWeek, currentDay, currentYear } = getISOWeekAndYear();
 
-        // if(currentDay === 6 || currentDay === 7) {
-        //     // load standings
-        //     try {
-        //         await loadStandings(currentWeek, currentYear);
-        //     } catch (err) {
-        //         console.error("Failed to load standings:", err);
-        //     }
-        //     wordDiv.innerHTML = "Come Back Monday for Another Game!";
-        //     return;
-        // }
+        if(currentDay === 6 || currentDay === 7) {
+            // load standings
+            try {
+                await loadStandings(currentWeek, currentYear);
+            } catch (err) {
+                console.error("Failed to load standings:", err);
+            }
+            msgDiv.innerHTML = "Enjoy the Weekend and Come Back Monday for Another Game!";
+            return;
+        }
 
         // initialize arrays
         const cluesToReveal = [];
