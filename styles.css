@@ -111,12 +111,17 @@ body {
     font-family: 'Fredoka', Arial, sans-serif;
     color: #033f63;
     background-color: white;
-    /* -webkit-text-fill-color: #033f63; */
 }
 
 .letterBox.locked {
     background-color: #e0e0e0;
     cursor: not-allowed;
+}
+
+#msgDiv {
+    height: 30px;
+    font-size: 24px;
+    color: #033f63;
 }
 
 #clueDiv {

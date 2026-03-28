@@ -97,7 +97,8 @@ function btnDisabler(
     cluesToReveal,
     buyClueBtn,
     buyLetterBtn,
-    guessWordBtn
+    guessWordBtn,
+    clueElements
 ) {
     const score = todaysScore.score;
     const totalClues = Object.keys(todaysClues.clue).length;
@@ -121,10 +122,24 @@ function btnDisabler(
 
     // game over condition
     if (score < 1) {
-        alert("Game Over");
+        msgDiv.textContent = "Game over!";
+        for (let i = 0; i < todaysLetters.length; i++) {
+            if (!lettersToReveal.includes(i)) {
+                lettersToReveal.push(i);
+            }
+        }
+        Object.keys(todaysClues.clue).forEach(key => {
+            const index = parseInt(key);
+
+            if (!cluesToReveal.includes(index)) {
+                cluesToReveal.push(index);
+            }
+        });
         guessWordBtn.disabled = true;
         guessWordBtn.classList = "btnDisable";
         todaysScore.finalScore = score;
+        revealLetters(todaysLetters, lettersToReveal);
+        revealClues(todaysClues, cluesToReveal, clueElements);
     }
 
     // all clues revealed
@@ -256,6 +271,7 @@ window.addEventListener("load", async() => {
     const scoreLabelDiv = document.getElementById("scoreLabelDiv");
     const scoreNumDiv = document.getElementById("scoreNumDiv");
     const wordDiv = document.getElementById("wordDiv");
+    const msgDiv = document.getElementById("msgDiv");
     const clueTitleDiv = document.getElementById("clueTitleDiv");
     const clue0DivNum = document.getElementById("clue0DivNum");
     const clue0DivText = document.getElementById("clue0DivText");
@@ -468,7 +484,7 @@ window.addEventListener("load", async() => {
                 console.error("Failed to save score:", err);
             }
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
+                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements)
         });
         btnDivTop.appendChild(buyClueBtn);
 
@@ -492,7 +508,7 @@ window.addEventListener("load", async() => {
                 console.error("Failed to save score:", err);
             }
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
+                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements)
         });
         btnDivTop.appendChild(buyLetterBtn);
     
@@ -518,11 +534,13 @@ window.addEventListener("load", async() => {
             // compare guess
             if (wordGuess !== todaysWord.toLowerCase()) {
                 todaysScore.score -= 2;
+                if (todaysScore.score < 0) {
+                    todaysScore.score = 0;
+                }
                 scoreNumDiv.textContent = todaysScore.score;
-                console.log("wrong");
-                // alert("Incorrect guess!");
+                msgDiv.innerHTML = "Incorrect guess!";
             } else {
-                alert("Correct!");
+                msgDiv.innerHTML = "Correct!";
                 todaysScore.finalScore = todaysScore.score;
 
                 for (let i = 0; i < todaysLetters.length; i++) {
@@ -538,9 +556,6 @@ window.addEventListener("load", async() => {
                     }
                 });
             }
-            console.log("i got here");
-            revealLetters(todaysLetters, lettersToReveal);
-            revealClues(todaysClues, cluesToReveal, clueElements);
 
             try {
                 await updateScores(todaysScore, lettersToReveal, cluesToReveal);
@@ -555,12 +570,15 @@ window.addEventListener("load", async() => {
             }
 
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn)
+                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements)
+
+            revealLetters(todaysLetters, lettersToReveal);
+            revealClues(todaysClues, cluesToReveal, clueElements);
         });
 
         btnDivBottom.appendChild(guessWordBtn);
         btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-            cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn);
+            cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements);
         hr1.classList.add("lines");
 
         // load standings
