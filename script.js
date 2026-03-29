@@ -193,7 +193,7 @@ function buildStandingsTable(data) {
         "5": "F"
     };
 
-    // Build structure
+    // build structure
     const users = {};
 
     data.forEach(entry => {
@@ -211,7 +211,7 @@ function buildStandingsTable(data) {
 
     const table = document.getElementById("scoreTable");
 
-    // Header
+    // header
     table.innerHTML = `
         <tr>
             <th>Player</th>
@@ -295,19 +295,23 @@ window.addEventListener("load", async() => {
     if(!username) {
         loginModal.style.display = "block";
         return;
+
     } else {
         titleDiv.textContent = "nymbleMind";       
         
         // initialize username and dates
         const { currentDate, currentWeek, currentDay, currentYear } = getISOWeekAndYear();
 
-        if(currentDay === 6 || currentDay === 7) {
-            // load standings
+        // if sat or sun, post message and load standings
+        if(currentDay === 6 || currentDay === 0) {
+            
             try {
                 await loadStandings(currentWeek, currentYear);
+            
             } catch (err) {
                 console.error("Failed to load standings:", err);
             }
+
             msgDiv.innerHTML = "Enjoy the Weekend and Come Back Monday for Another Game!";
             return;
         }
@@ -315,11 +319,13 @@ window.addEventListener("load", async() => {
         // initialize arrays
         const cluesToReveal = [];
         const lettersToReveal = [];
+        
         const showBtn = {
             clue: 1,
             letter: 1,
             guess: 1
         };
+
         const todaysScore = {
             playerId: playerId,
             datePlayed: currentDate,
@@ -327,6 +333,7 @@ window.addEventListener("load", async() => {
             week: currentWeek,
             year: currentYear
         };
+
         const clueElements = {
             0: { num: clue0DivNum, text: clue0DivText },
             1: { num: clue1DivNum, text: clue1DivText },
@@ -343,9 +350,9 @@ window.addEventListener("load", async() => {
         });
 
         const resultWord = await resWord.json();
-
         const rowWord = resultWord[0];
         const todaysWord = rowWord.word;
+        
         const todaysClues = {
             clue: {
                 0: rowWord.clue0,
@@ -371,6 +378,7 @@ window.addEventListener("load", async() => {
         // if game has been started, retrieve game status
         if (rowScore) {
             todaysScore.score = rowScore.score;
+            
             for (const key in rowScore) {
                 if (rowScore[key] !== 1) continue;
 
@@ -382,12 +390,12 @@ window.addEventListener("load", async() => {
                     lettersToReveal.push(parseInt(key.match(/\d+/)[0]));
                 }
             }
+        // or set up a new game and write to database
         } else {
             todaysScore.score = 10 + 2 * (todaysLetters.length - 5);
             cluesToReveal.push(0);
             todaysScore.clue0Revealed = 1;
 
-            // write new game to database
             const resSave = await fetch("/api/initialScoreSave", {
                 method: "POST",
                 headers: {
@@ -468,58 +476,80 @@ window.addEventListener("load", async() => {
         const buyClueBtn = document.createElement("button");
         buyClueBtn.classList = "button";
         buyClueBtn.innerHTML = "Buy Clue";
+
         buyClueBtn.addEventListener("click", async () => {
+            // 2 points for second clue; 3 for third
             const max = Math.max(...cluesToReveal);
             cluesToReveal.push(max + 1);
+
             if (max == 0) {
                 todaysScore.score -= 2; 
+            
             } else {
                 todaysScore.score -= 3;
             }
+
+            // reveal purchased clue and update game status
             revealClues(todaysClues, cluesToReveal, clueElements);
             scoreNumDiv.textContent = todaysScore.score;
+            
             try {
                 await updateScores(todaysScore, lettersToReveal, cluesToReveal);
+            
             } catch (err) {
                 console.error("Failed to save score:", err);
             }
+
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements)
+                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements);
         });
+        
         btnDivTop.appendChild(buyClueBtn);
 
         // create buy letter button
         const buyLetterBtn = document.createElement("button");
         buyLetterBtn.classList = "button";
         buyLetterBtn.innerHTML = "Buy Letter";
+
         buyLetterBtn.addEventListener("click", async () => {
+            // select random letter to reveal that isn't alread revealed for 2 points
             let randomIndex;
+            
             do {
                 randomIndex = Math.floor(Math.random() * todaysLetters.length);
             } 
+            
             while (lettersToReveal.includes(randomIndex));
+
             lettersToReveal.push(randomIndex);
             todaysScore.score -= 2;
+
+            // reveal purchased letter and update game status
             revealLetters(todaysLetters, lettersToReveal);
             scoreNumDiv.textContent = todaysScore.score
+            
             try {
                 await updateScores(todaysScore, lettersToReveal, cluesToReveal);
+           
             } catch (err) {
                 console.error("Failed to save score:", err);
             }
+
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements)
+                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements);
         });
+        
         btnDivTop.appendChild(buyLetterBtn);
     
         // create guess word button
         const guessWordBtn = document.createElement("button");
         guessWordBtn.classList = "button";
         guessWordBtn.innerHTML = "Guess Word";
+        
         guessWordBtn.addEventListener("click", async () => {
+            // check for blanks and combine inputs to wordGuess
             let wordGuess = "";
 
-            // check for blanks + build word
             for (let i = 0; i < todaysLetters.length; i++) {
                 const input = document.querySelector(`[name="entry${i}"]`);
 
@@ -530,24 +560,29 @@ window.addEventListener("load", async() => {
 
                 wordGuess += input.value.toLowerCase();
             }
-
-            // compare guess
+            
+            // compare guess to answer; incorrect guess cost 2 points
             if (wordGuess !== todaysWord.toLowerCase()) {
                 todaysScore.score -= 2;
+
                 if (todaysScore.score < 0) {
                     todaysScore.score = 0;
                 }
+
                 scoreNumDiv.textContent = todaysScore.score;
                 msgDiv.innerHTML = "Incorrect guess!";
+
             } else {
                 msgDiv.innerHTML = "Correct!";
                 todaysScore.finalScore = todaysScore.score;
-
+                
+                // reveal all clues and letters if guess is correct
                 for (let i = 0; i < todaysLetters.length; i++) {
                     if (!lettersToReveal.includes(i)) {
                         lettersToReveal.push(i);
                     }
                 }
+
                 Object.keys(todaysClues.clue).forEach(key => {
                     const index = parseInt(key);
 
@@ -556,41 +591,48 @@ window.addEventListener("load", async() => {
                     }
                 });
             }
-
+            
+            // update game status
             try {
                 await updateScores(todaysScore, lettersToReveal, cluesToReveal);
+            
             } catch (err) {
                 console.error("Failed to save score:", err);
             }
 
             try {
                 await loadStandings(currentWeek, currentYear);
+            
             } catch (err) {
                 console.error("Failed to load standings:", err);
             }
 
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
-                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements)
+                cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements);
 
             revealLetters(todaysLetters, lettersToReveal);
             revealClues(todaysClues, cluesToReveal, clueElements);
         });
 
         btnDivBottom.appendChild(guessWordBtn);
+        
+        // on game resume, set button status
         btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
             cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements);
+        
         hr1.classList.add("lines");
 
         // load standings
-        
         try {
             await loadStandings(currentWeek, currentYear);
+        
         } catch (err) {
-            console.error("Failed to load standings:", err);
+           console.error("Failed to load standings:", err);
         }
+
         hr2.classList.add("lines");
 
-        // show scoring
+        // show scoring table
         scoringTitle.textContent = "Scoring";
         const table = document.createElement("table");
         table.innerHTML = `
