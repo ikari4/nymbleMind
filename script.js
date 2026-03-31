@@ -122,23 +122,11 @@ function btnDisabler(
     // game over condition
     if (score < 1) {
         msgDiv.textContent = "Game over!";
-        // for (let i = 0; i < todaysLetters.length; i++) {
-        //     if (!lettersToReveal.includes(i)) {
-        //         lettersToReveal.push(i);
-        //     }
-        // }
-        // Object.keys(todaysClues.clue).forEach(key => {
-        //     const index = parseInt(key);
-
-        //     if (!cluesToReveal.includes(index)) {
-        //         cluesToReveal.push(index);
-        //     }
-        // });
         guessWordBtn.disabled = true;
         guessWordBtn.classList = "btnDisable";
         todaysScore.finalScore = score;
-        revealLetters(todaysLetters, lettersToReveal);
-        revealClues(todaysClues, cluesToReveal, clueElements);
+        // revealLetters(todaysLetters, lettersToReveal);
+        // revealClues(todaysClues, cluesToReveal, clueElements);
     }
 
     // all clues revealed
@@ -377,6 +365,7 @@ window.addEventListener("load", async() => {
         // if game has been started, retrieve game status
         if (rowScore) {
             todaysScore.score = rowScore.score;
+            todaysScore.finalScore = rowScore.finalScore;
             
             for (const key in rowScore) {
                 if (rowScore[key] !== 1) continue;
@@ -470,6 +459,9 @@ window.addEventListener("load", async() => {
         clueTitleDiv.textContent = "Clues";
         revealClues(todaysClues, cluesToReveal, clueElements);
         revealLetters(todaysLetters, lettersToReveal);
+        if(todaysScore.finalScore) {
+            msgDiv.innerHTML = "Game Over";
+        }
         
         // create buy clue button
         const buyClueBtn = document.createElement("button");
@@ -573,6 +565,7 @@ window.addEventListener("load", async() => {
                 if (todaysScore.score <= 0) {
                     todaysScore.score = 0;
                     todaysScore.finalScore = todaysScore.score;
+                    msgDiv.textContent = "Game Over";
 
                     // reveal all clues and letters if game is over
                     for (let i = 0; i < todaysLetters.length; i++) {
@@ -638,7 +631,7 @@ window.addEventListener("load", async() => {
 
         btnDivBottom.appendChild(guessWordBtn);
         
-        // on game resume, set button status
+        // set initial button status
         btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
             cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements);
         
