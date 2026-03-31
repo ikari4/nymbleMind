@@ -98,8 +98,22 @@ body {
     margin: 10px 0;
     justify-content: center;
 }
-
 .letterBox {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    font-size: clamp(14px, 8vw, 22px);
+    border: none;
+    border-bottom: 2px solid black;
+    outline: none;
+    font-family: 'Fredoka', Arial, sans-serif;
+    color: #033f63;
+    background-color: white;
+    line-height: 1;
+        padding: 4px 0;
+}
+
+/* .letterBox {
     flex: 1;
     min-width: 0;
     text-align: center;
@@ -111,7 +125,7 @@ body {
     font-family: 'Fredoka', Arial, sans-serif;
     color: #033f63;
     background-color: white;
-}
+} */
 
 .letterBox.locked {
     background-color: #e0e0e0;

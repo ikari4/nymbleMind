@@ -557,6 +557,7 @@ window.addEventListener("load", async() => {
                 const input = document.querySelector(`[name="entry${i}"]`);
 
                 if (!input || input.value.trim() === "") {
+                    guessWordBtn.disabled = false;
                     alert("Please fill in all letters before guessing.");
                     return;
                 }
