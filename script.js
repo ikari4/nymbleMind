@@ -1,6 +1,5 @@
 // script.js
 
-
 function getISOWeekAndYear() {
 
     const dateUTC = new Date();
@@ -123,18 +122,18 @@ function btnDisabler(
     // game over condition
     if (score < 1) {
         msgDiv.textContent = "Game over!";
-        for (let i = 0; i < todaysLetters.length; i++) {
-            if (!lettersToReveal.includes(i)) {
-                lettersToReveal.push(i);
-            }
-        }
-        Object.keys(todaysClues.clue).forEach(key => {
-            const index = parseInt(key);
+        // for (let i = 0; i < todaysLetters.length; i++) {
+        //     if (!lettersToReveal.includes(i)) {
+        //         lettersToReveal.push(i);
+        //     }
+        // }
+        // Object.keys(todaysClues.clue).forEach(key => {
+        //     const index = parseInt(key);
 
-            if (!cluesToReveal.includes(index)) {
-                cluesToReveal.push(index);
-            }
-        });
+        //     if (!cluesToReveal.includes(index)) {
+        //         cluesToReveal.push(index);
+        //     }
+        // });
         guessWordBtn.disabled = true;
         guessWordBtn.classList = "btnDisable";
         todaysScore.finalScore = score;
@@ -478,6 +477,7 @@ window.addEventListener("load", async() => {
         buyClueBtn.innerHTML = "Buy Clue";
 
         buyClueBtn.addEventListener("click", async () => {
+            buyClueBtn.disabled = true;
             // 2 points for second clue; 3 for third
             const max = Math.max(...cluesToReveal);
             cluesToReveal.push(max + 1);
@@ -500,6 +500,7 @@ window.addEventListener("load", async() => {
                 console.error("Failed to save score:", err);
             }
 
+            buyClueBtn.disabled = false;
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
                 cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements);
         });
@@ -512,6 +513,7 @@ window.addEventListener("load", async() => {
         buyLetterBtn.innerHTML = "Buy Letter";
 
         buyLetterBtn.addEventListener("click", async () => {
+            buyLetterBtn.disabled = true;            
             // select random letter to reveal that isn't alread revealed for 2 points
             let randomIndex;
             
@@ -534,7 +536,7 @@ window.addEventListener("load", async() => {
             } catch (err) {
                 console.error("Failed to save score:", err);
             }
-
+            buyLetterBtn.disabled = false;  
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
                 cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements);
         });
@@ -547,6 +549,7 @@ window.addEventListener("load", async() => {
         guessWordBtn.innerHTML = "Guess Word";
         
         guessWordBtn.addEventListener("click", async () => {
+            guessWordBtn.disabled = true;
             // check for blanks and combine inputs to wordGuess
             let wordGuess = "";
 
@@ -565,8 +568,25 @@ window.addEventListener("load", async() => {
             if (wordGuess !== todaysWord.toLowerCase()) {
                 todaysScore.score -= 2;
 
-                if (todaysScore.score < 0) {
+                // game over condition
+                if (todaysScore.score <= 0) {
                     todaysScore.score = 0;
+                    todaysScore.finalScore = todaysScore.score;
+
+                    // reveal all clues and letters if game is over
+                    for (let i = 0; i < todaysLetters.length; i++) {
+                        if (!lettersToReveal.includes(i)) {
+                            lettersToReveal.push(i);
+                        }
+                    }
+
+                    Object.keys(todaysClues.clue).forEach(key => {
+                        const index = parseInt(key);
+
+                        if (!cluesToReveal.includes(index)) {
+                            cluesToReveal.push(index);
+                        }
+                    });
                 }
 
                 scoreNumDiv.textContent = todaysScore.score;
@@ -607,6 +627,7 @@ window.addEventListener("load", async() => {
                 console.error("Failed to load standings:", err);
             }
 
+            guessWordBtn.disabled = false;
             btnDisabler(todaysScore, todaysLetters, todaysClues, lettersToReveal, 
                 cluesToReveal, buyClueBtn, buyLetterBtn, guessWordBtn, clueElements);
 

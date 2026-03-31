@@ -128,7 +128,6 @@ body {
 #clueDiv {
     display: flex;
     flex-direction: column;
-    height: 116px;
     margin: 10px 0;
 }
 
