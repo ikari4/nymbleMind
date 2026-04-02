@@ -110,22 +110,8 @@ body {
     color: #033f63;
     background-color: white;
     line-height: 1;
-        padding: 4px 0;
+    padding: 4px 0;
 }
-
-/* .letterBox {
-    flex: 1;
-    min-width: 0;
-    text-align: center;
-    font-size: 24px;
-    border: none;
-    border-bottom: 2px solid black;
-    margin-right: 8px;
-    outline: none;
-    font-family: 'Fredoka', Arial, sans-serif;
-    color: #033f63;
-    background-color: white;
-} */
 
 .letterBox.locked {
     background-color: #e0e0e0;
@@ -135,6 +121,7 @@ body {
 #msgDiv {
     display: flex;
     text-align: center;
+    color: #632703;
     height: 30px;
     font-size: 24px;
 }
@@ -156,6 +143,10 @@ body {
     gap: 10px;
     font-size: 24px;
     width: 370px;
+    min-height: 65px;
+    align-items: flex-start;
+    border: 1px solid lightgray;
+    padding: 2px 0;
 }
 
 #btnDiv {
