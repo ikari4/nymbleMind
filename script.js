@@ -103,12 +103,12 @@ function btnDisabler(
     const totalClues = Object.keys(todaysClues.clue).length;
 
     // score-based clue restrictions
-    if (score < 4 && cluesToReveal.includes(1)) {
+    if (score < 5 && cluesToReveal.includes(1)) {
         buyClueBtn.disabled = true;
         buyClueBtn.classList = "btnDisable";
     }
 
-    if (score < 3 && cluesToReveal.includes(0)) {
+    if (score < 4 && cluesToReveal.includes(0)) {
         buyClueBtn.disabled = true;
         buyClueBtn.classList = "btnDisable";
     }
@@ -475,10 +475,10 @@ window.addEventListener("load", async() => {
             cluesToReveal.push(max + 1);
 
             if (max == 0) {
-                todaysScore.score -= 2; 
+                todaysScore.score -= 3; 
             
             } else {
-                todaysScore.score -= 3;
+                todaysScore.score -= 4;
             }
 
             // reveal purchased clue and update game status
@@ -651,11 +651,11 @@ window.addEventListener("load", async() => {
         scoringTitle.textContent = "Scoring";
         const table = document.createElement("table");
         table.innerHTML = `
-            <tr><td>Clue 1</td><td> - </td><td>Free!</td></tr>
-            <tr><td>Clue 2</td><td> - </td><td>2 points</td></tr>
-            <tr><td>Clue 3</td><td> - </td><td>3 points</td></tr>
-            <tr><td>Letters</td><td> - </td><td>2 points each</td></tr>
-            <tr><td>Bad Guess</td><td> - </td><td>2 points</td></tr>
+            <tr><td>Clue 1 (Difficult Clue)</td><td>       </td><td>Free!</td></tr>
+            <tr><td>Clue 2 (Medium Clue)</td><td>       </td><td>-3 points</td></tr>
+            <tr><td>Clue 3 (Easy Clue)</td><td>       </td><td>-4 points</td></tr>
+            <tr><td>Random Letter Reveal</td><td>       </td><td>-2 points each</td></tr>
+            <tr><td>Incorrect Word Guess</td><td>       </td><td>-2 points</td></tr>
         `;
         scoringBody.appendChild(table);
         hr3.classList.add("lines");

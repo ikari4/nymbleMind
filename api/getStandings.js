@@ -23,9 +23,9 @@ export default async function handler(req, res) {
             p.username
         FROM Scores s
         JOIN Players p ON s.playerId = p.playerId
-        WHERE s.week = ? and s.year = ?
+        WHERE s.week = ? and s.year = ? and p.username != ?
         `,
-        [currentWeek, currentYear]
+        [currentWeek, currentYear, "admin"]
     );
 
     res.status(200).json(result.rows);

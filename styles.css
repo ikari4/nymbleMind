@@ -101,6 +101,7 @@ body {
     flex: 1 1 0;
     min-width: 0;
     text-align: center;
+    text-transform: uppercase;
     font-size: clamp(14px, 8vw, 22px);
     border: none;
     border-bottom: 2px solid black;
@@ -171,8 +172,9 @@ body {
     background-color: #033f63;
     color: white;
     border: none;
-    min-height: 44px; /* recommended minimum for iOS */
-    border-radius: 8px; /* slightly larger for iOS feel */
+    min-height: 44px;
+    min-width: 140px;
+    border-radius: 8px;
     padding: 10px 14px;
     font-size: 20px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -199,8 +201,9 @@ body {
 }
 
 .btnDisable {
-    min-height: 44px; /* recommended minimum for iOS */
-    border-radius: 8px; /* slightly larger for iOS feel */
+    min-height: 44px;
+    min-width: 140px;
+    border-radius: 8px;
     padding: 10px 14px;
     font-size: 20px;
     border: none;
