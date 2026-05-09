@@ -108,7 +108,7 @@ function btnDisabler(
         buyClueBtn.classList = "btnDisable";
     }
 
-    if (score < 4 && cluesToReveal.includes(0)) {
+    if (score < 6 && cluesToReveal.includes(0) && !cluesToReveal.includes(1)) {
         buyClueBtn.disabled = true;
         buyClueBtn.classList = "btnDisable";
     }
@@ -125,8 +125,6 @@ function btnDisabler(
         guessWordBtn.disabled = true;
         guessWordBtn.classList = "btnDisable";
         todaysScore.finalScore = score;
-        // revealLetters(todaysLetters, lettersToReveal);
-        // revealClues(todaysClues, cluesToReveal, clueElements);
     }
 
     // all clues revealed
@@ -470,12 +468,12 @@ window.addEventListener("load", async() => {
 
         buyClueBtn.addEventListener("click", async () => {
             buyClueBtn.disabled = true;
-            // 2 points for second clue; 3 for third
+            // 5 points for second clue; 4 for third
             const max = Math.max(...cluesToReveal);
             cluesToReveal.push(max + 1);
 
             if (max == 0) {
-                todaysScore.score -= 3; 
+                todaysScore.score -= 5; 
             
             } else {
                 todaysScore.score -= 4;
@@ -652,7 +650,7 @@ window.addEventListener("load", async() => {
         const table = document.createElement("table");
         table.innerHTML = `
             <tr><td>Clue 1 (Difficult Clue)</td><td>       </td><td>Free!</td></tr>
-            <tr><td>Clue 2 (Medium Clue)</td><td>       </td><td>-3 points</td></tr>
+            <tr><td>Clue 2 (Medium Clue)</td><td>       </td><td>-5 points</td></tr>
             <tr><td>Clue 3 (Easy Clue)</td><td>       </td><td>-4 points</td></tr>
             <tr><td>Random Letter Reveal</td><td>       </td><td>-2 points each</td></tr>
             <tr><td>Incorrect Word Guess</td><td>       </td><td>-2 points</td></tr>
