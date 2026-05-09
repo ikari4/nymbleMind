@@ -22,6 +22,7 @@ function getISOWeekAndYear() {
     const currentWeek = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
     const currentDate = dateLocal.split(',')[0];
 
+    // let currentDate = '2026-04-08', currentWeek = 15, currentDay = 3, currentYear = 2026;
     return { currentDate, currentWeek, currentDay, currentYear };
 }
 
