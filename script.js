@@ -22,7 +22,7 @@ function getISOWeekAndYear() {
     const currentWeek = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
     const currentDate = dateLocal.split(',')[0];
 
-    // let currentDate = '2026-04-08', currentWeek = 15, currentDay = 3, currentYear = 2026;
+    // let currentDate = '2026-04-07', currentWeek = 15, currentDay = 2, currentYear = 2026;
     return { currentDate, currentWeek, currentDay, currentYear };
 }
 
@@ -104,18 +104,18 @@ function btnDisabler(
     const totalClues = Object.keys(todaysClues.clue).length;
 
     // score-based clue restrictions
-    if (score < 5 && cluesToReveal.includes(1)) {
+    if (score < 3 && cluesToReveal.includes(1)) {
         buyClueBtn.disabled = true;
         buyClueBtn.classList = "btnDisable";
     }
 
-    if (score < 6 && cluesToReveal.includes(0) && !cluesToReveal.includes(1)) {
+    if (score < 4 && cluesToReveal.includes(0) && !cluesToReveal.includes(1)) {
         buyClueBtn.disabled = true;
         buyClueBtn.classList = "btnDisable";
     }
 
     // score-based letter restriction
-    if (score < 3) {
+    if (score < lettersToReveal.length + 2) {
         buyLetterBtn.disabled = true;
         buyLetterBtn.classList = "btnDisable";
     }
@@ -469,15 +469,15 @@ window.addEventListener("load", async() => {
 
         buyClueBtn.addEventListener("click", async () => {
             buyClueBtn.disabled = true;
-            // 5 points for second clue; 4 for third
+            // 3 points for second clue; 2 for third
             const max = Math.max(...cluesToReveal);
             cluesToReveal.push(max + 1);
 
             if (max == 0) {
-                todaysScore.score -= 5; 
+                todaysScore.score -= 3; 
             
             } else {
-                todaysScore.score -= 4;
+                todaysScore.score -= 2;
             }
 
             // reveal purchased clue and update game status
@@ -505,7 +505,8 @@ window.addEventListener("load", async() => {
 
         buyLetterBtn.addEventListener("click", async () => {
             buyLetterBtn.disabled = true;            
-            // select random letter to reveal that isn't alread revealed for 2 points
+            // select random letter to reveal that isn't already revealed
+            // each letter costs 1 more point; nth reveal costs n points
             let randomIndex;
             
             do {
@@ -515,7 +516,7 @@ window.addEventListener("load", async() => {
             while (lettersToReveal.includes(randomIndex));
 
             lettersToReveal.push(randomIndex);
-            todaysScore.score -= 2;
+            todaysScore.score -= lettersToReveal.length;
 
             // reveal purchased letter and update game status
             revealLetters(todaysLetters, lettersToReveal);
@@ -556,7 +557,7 @@ window.addEventListener("load", async() => {
                 wordGuess += input.value.toLowerCase();
             }
             
-            // compare guess to answer; incorrect guess cost 2 points
+            // compare guess to answer; incorrect guess costs 2 points
             if (wordGuess !== todaysWord.toLowerCase()) {
                 todaysScore.score -= 2;
 
@@ -651,9 +652,11 @@ window.addEventListener("load", async() => {
         const table = document.createElement("table");
         table.innerHTML = `
             <tr><td>Clue 1 (Difficult Clue)</td><td>       </td><td>Free!</td></tr>
-            <tr><td>Clue 2 (Medium Clue)</td><td>       </td><td>-5 points</td></tr>
-            <tr><td>Clue 3 (Easy Clue)</td><td>       </td><td>-4 points</td></tr>
-            <tr><td>Random Letter Reveal</td><td>       </td><td>-2 points each</td></tr>
+            <tr><td>Clue 2 (Medium Clue)</td><td>       </td><td>-3 points</td></tr>
+            <tr><td>Clue 3 (Easy Clue)</td><td>       </td><td>-2 points</td></tr>
+            <tr><td>Random Letter Reveal 1</td><td>       </td><td>-1 points each</td></tr>
+            <tr><td>Random Letter Reveal 2</td><td>       </td><td>-2 points each</td></tr>
+            <tr><td>Random Letter Reveal n</td><td>       </td><td>-n points each</td></tr>
             <tr><td>Incorrect Word Guess</td><td>       </td><td>-2 points</td></tr>
         `;
         scoringBody.appendChild(table);
