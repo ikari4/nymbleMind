@@ -654,9 +654,9 @@ window.addEventListener("load", async() => {
             <tr><td>Clue 1 (Difficult Clue)</td><td>       </td><td>Free!</td></tr>
             <tr><td>Clue 2 (Medium Clue)</td><td>       </td><td>-3 points</td></tr>
             <tr><td>Clue 3 (Easy Clue)</td><td>       </td><td>-2 points</td></tr>
-            <tr><td>Random Letter Reveal 1</td><td>       </td><td>-1 points each</td></tr>
-            <tr><td>Random Letter Reveal 2</td><td>       </td><td>-2 points each</td></tr>
-            <tr><td>Random Letter Reveal n</td><td>       </td><td>-n points each</td></tr>
+            <tr><td>Random Letter Reveal 1</td><td>       </td><td>-1 point</td></tr>
+            <tr><td>Random Letter Reveal 2</td><td>       </td><td>-2 points</td></tr>
+            <tr><td>Random Letter Reveal n</td><td>       </td><td>-n points</td></tr>
             <tr><td>Incorrect Word Guess</td><td>       </td><td>-2 points</td></tr>
         `;
         scoringBody.appendChild(table);
