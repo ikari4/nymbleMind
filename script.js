@@ -397,6 +397,7 @@ window.addEventListener("load", async() => {
         if(currentDay === 6 || currentDay === 0) {
             
             try {
+                await loadChat(currentWeek, currentYear);
                 await loadStandings(currentWeek, currentYear);
             
             } catch (err) {
