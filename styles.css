@@ -13,19 +13,16 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-
     display: flex;
     justify-content: center;
     align-items: center;
-
     background-color: white;
     z-index: 9999;
-
     transition: opacity 0.5s ease;
 }
 
 #splash img {
-    width: 370px; /* adjust as needed */
+    width: 370px;
 }
 
 #loginTitle {
@@ -130,7 +127,7 @@ body {
     display: flex;
     flex-direction: column;
     margin: 10px 0;
-    min-height: 263px;
+    min-height: 185px; 
 }
 
 #clueTitleDiv {
@@ -178,12 +175,9 @@ body {
     padding: 10px 14px;
     font-size: 20px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-
     cursor: pointer;
     -webkit-tap-highlight-color: transparent; /* remove gray flash on iOS */
-
     transition: transform 0.1s ease, background-color 0.2s ease;
-
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
@@ -204,32 +198,90 @@ body {
     min-height: 44px;
     min-width: 140px;
     border-radius: 8px;
-    padding: 10px 14px;
     font-size: 20px;
     border: none;
     cursor: not-allowed;
 }
 
-#scoringDiv {
+#chatDiv {
     display: flex;
     flex-direction: column;
-    width: 370px;
 }
 
-#scoringTitle, #standingsTitle {
+#chatLog {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+#chatTitle, #standingsTitle {
     font-size: 24px;
     font-weight: bold;
     width: 370px;
 }
 
-#scoringBody {
-    white-space: pre-wrap;
+#chatBody {
+    display: flex;
+    gap: 8px;
 }
 
-hr {
-    width: 370px;
-    background-color: #033f63;
-    margin: 50px;
+#chatInputContainer {
+    display: flex;
+    gap: 8px;
+    padding: 10px 0;
+}
+
+#chatText {
+    flex: 0 0 72%;
+    min-height: 80px;
+    resize: vertical;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 20px;
+}
+
+#chatSubmitBtn {
+    flex: 0 0 25%;
+    font-size: 20px;
+    min-width: 0px;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+.chatItem {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.chatHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.chatUsername {
+    font-weight: 600;
+    color: #1d4ed8;
+}
+
+.chatDate {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+.chatText {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.chatGif {
+    max-width: 250px;
+    border-radius: 8px;
+    display: block;
 }
 
 #hr1, #hr2, #hr3 {
@@ -254,7 +306,6 @@ hr {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Header */
 #scoreTable th {
     background-color: #033f63;
     color: white;
@@ -263,35 +314,28 @@ hr {
     font-weight: 600;
 }
 
-/* Cells */
 #scoreTable td {
     padding: 6px;
     text-align: center;
     border-bottom: 1px solid #eee;
 }
 
-/* Player column left aligned */
 #scoreTable td:first-child {
     text-align: left;
     font-weight: 600;
 }
 
-/* Zebra striping */
 #scoreTable tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-/* Hover effect */
 #scoreTable tr:hover {
     background-color: #f1f7fb;
 }
 
-/* Total column emphasis */
 #scoreTable td:last-child {
     font-weight: bold;
 }
-
-/* Header row rounding fix */
 #scoreTable tr:first-child th:first-child {
     border-top-left-radius: 8px;
 }

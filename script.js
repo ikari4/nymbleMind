@@ -2,27 +2,29 @@
 
 function getISOWeekAndYear() {
 
+    // split string into yyyy mm dd, then create new date
+    // set date to Thursday of week
+    // find the first day of the year
+    // find weekNo based on count from first Thursday
+
     const dateUTC = new Date();
     const dateLocal = dateUTC.toLocaleString('en-ca');
 
-    // split string into yyyy mm dd, then create new date
     const a = dateLocal.split(/\D/);
     const date = new Date(a[0], a[1]-1, a[2]);
 
-    // set date to Thursday of week
     const currentDay = date.getDay();
     const currentYear = date.getFullYear();
     const tempDay = (currentDay + 6) % 7;
     date.setDate(date.getDate() - tempDay + 3);
 
-    // find the first day of the year
     const yearStart = new Date(currentYear, 0, 1);
     
-    // find weekNo based on count from first Thursday
     const currentWeek = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
     const currentDate = dateLocal.split(',')[0];
 
-    // let currentDate = '2026-04-07', currentWeek = 15, currentDay = 2, currentYear = 2026;
+    // this line used for testing; comment out everything above and uncomment below
+    // let currentDate = '2026-07-06', currentWeek = 28, currentDay = 1, currentYear = 2026;
     return { currentDate, currentWeek, currentDay, currentYear };
 }
 
@@ -103,19 +105,14 @@ function btnDisabler(
     const score = todaysScore.score;
     const totalClues = Object.keys(todaysClues.clue).length;
 
-    // score-based clue restrictions
-    if (score < 3 && cluesToReveal.includes(1)) {
+    // score-based clue restrictions - not enough points or already revealed second clue
+    if (score < 6 || cluesToReveal.includes(1)) { 
         buyClueBtn.disabled = true;
         buyClueBtn.classList = "btnDisable";
     }
 
-    if (score < 4 && cluesToReveal.includes(0) && !cluesToReveal.includes(1)) {
-        buyClueBtn.disabled = true;
-        buyClueBtn.classList = "btnDisable";
-    }
-
-    // score-based letter restriction
-    if (score < lettersToReveal.length + 2) {
+    // score-based letter restriction - not enough points or already revealed half of word
+    if (score < 2 || lettersToReveal.length >= Math.floor(todaysLetters.length / 2)) { 
         buyLetterBtn.disabled = true;
         buyLetterBtn.classList = "btnDisable";
     }
@@ -148,6 +145,115 @@ function btnDisabler(
         guessWordBtn.disabled = true;
         guessWordBtn.classList = "btnDisable";
     }
+}
+
+async function submitChat(playerId, currentWeek, currentYear) {
+    const textarea = document.getElementById("chatText");
+    const text = textarea.value.trim();
+
+    if (!text) {
+        return;
+    }
+
+    const payload = {
+        playerId: playerId,
+        week: currentWeek,
+        year: currentYear,
+        text: text
+    };
+
+    try {
+        const response = await fetch("/api/logChat.js", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+        }
+
+        // clear the textarea after successful submit
+        textarea.value = "";
+        textarea.focus();
+
+        // reload chat list on new entry
+        try {
+            await loadChat(currentWeek, currentYear);
+          
+        } catch (err) {
+           console.error("Failed to load chat:", err);
+        }
+
+    } catch (err) {
+        console.error("Failed to send chat:", err);
+        alert("Unable to send chat.");
+    }
+}
+ 
+async function loadChat(currentWeek, currentYear) {
+    const resChat = await fetch("/api/getChats", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ currentWeek, currentYear })
+    });
+
+    const resultChat = await resChat.json();
+
+    buildChatTable(resultChat);
+}
+
+function buildChatTable(chats) {
+    const chatLog = document.getElementById("chatLog");
+    chatLog.innerHTML = "";
+
+    chats.sort((a, b) =>
+        new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    chats.forEach(chat => {
+        chatLog.appendChild(renderMessage(chat));
+    });
+}
+
+function renderMessage(chat) {
+    const chatItem = document.createElement("div");
+    chatItem.className = "chatItem";
+
+    const header = document.createElement("div");
+    header.className = "chatHeader";
+
+    const username = document.createElement("span");
+    username.className = "chatUsername";
+    username.textContent = chat.username;
+
+    header.appendChild(username);
+
+    const body = document.createElement("div");
+    body.className = "chatText";
+
+    const text = chat.text.trim();
+
+    // simple GIF detection
+    const isGifUrl = text.match(/\.(gif)(\?.*)?$/i);
+
+    if (isGifUrl) {
+        const img = document.createElement("img");
+        img.src = text;
+        img.className = "chatGif";
+        body.appendChild(img);
+    } else {
+        body.textContent = text;
+    }
+
+    chatItem.appendChild(header);
+    chatItem.appendChild(body);
+
+    return chatItem;
 }
 
 async function loadStandings(currentWeek, currentYear) {
@@ -263,13 +369,12 @@ window.addEventListener("load", async() => {
     const clue0DivText = document.getElementById("clue0DivText");
     const clue1DivNum = document.getElementById("clue1DivNum");
     const clue1DivText = document.getElementById("clue1DivText");    
-    const clue2DivNum = document.getElementById("clue2DivNum");
-    const clue2DivText = document.getElementById("clue2DivText");   
     const btnDivTop = document.getElementById("btnDivTop");
     const btnDivBottom = document.getElementById("btnDivBottom");
     const standingsDiv = document.getElementById("standingsDiv");
-    const scoringTitle = document.getElementById("scoringTitle");
-    const scoringBody = document.getElementById("scoringBody");
+    const chatTitle = document.getElementById("chatTitle");
+    const chatInputContainer = document.getElementById("chatInputContainer");
+    const chatLog = document.getElementById("chatLog");
     const hr1 = document.getElementById("hr1");
     const hr2 = document.getElementById("hr2");
     const hr3 = document.getElementById("hr3");
@@ -323,7 +428,7 @@ window.addEventListener("load", async() => {
         const clueElements = {
             0: { num: clue0DivNum, text: clue0DivText },
             1: { num: clue1DivNum, text: clue1DivText },
-            2: { num: clue2DivNum, text: clue2DivText },
+            // 2: { num: clue2DivNum, text: clue2DivText },
         };
 
         // get today's word from database
@@ -379,7 +484,7 @@ window.addEventListener("load", async() => {
             }
         // or set up a new game and write to database
         } else {
-            todaysScore.score = 10 + 2 * (todaysLetters.length - 5);
+            todaysScore.score = 10;
             cluesToReveal.push(0);
             todaysScore.clue0Revealed = 1;
 
@@ -465,20 +570,14 @@ window.addEventListener("load", async() => {
         // create buy clue button
         const buyClueBtn = document.createElement("button");
         buyClueBtn.classList = "button";
-        buyClueBtn.innerHTML = "Buy Clue";
+        buyClueBtn.innerHTML = "Buy Clue" + "<br>" + "-5 points";
 
         buyClueBtn.addEventListener("click", async () => {
             buyClueBtn.disabled = true;
-            // 3 points for second clue; 2 for third
-            const max = Math.max(...cluesToReveal);
-            cluesToReveal.push(max + 1);
-
-            if (max == 0) {
-                todaysScore.score -= 3; 
             
-            } else {
-                todaysScore.score -= 2;
-            }
+            // 5 points for second clue
+            cluesToReveal.push(1);
+            todaysScore.score -= 5; 
 
             // reveal purchased clue and update game status
             revealClues(todaysClues, cluesToReveal, clueElements);
@@ -501,12 +600,12 @@ window.addEventListener("load", async() => {
         // create buy letter button
         const buyLetterBtn = document.createElement("button");
         buyLetterBtn.classList = "button";
-        buyLetterBtn.innerHTML = "Buy Letter";
+        buyLetterBtn.innerHTML = "Buy Letter" + "<br>" + "-1 point";
 
         buyLetterBtn.addEventListener("click", async () => {
             buyLetterBtn.disabled = true;            
             // select random letter to reveal that isn't already revealed
-            // each letter costs 1 more point; nth reveal costs n points
+            // each letter costs 1 point
             let randomIndex;
             
             do {
@@ -516,7 +615,7 @@ window.addEventListener("load", async() => {
             while (lettersToReveal.includes(randomIndex));
 
             lettersToReveal.push(randomIndex);
-            todaysScore.score -= lettersToReveal.length;
+            todaysScore.score -= 1;
 
             // reveal purchased letter and update game status
             revealLetters(todaysLetters, lettersToReveal);
@@ -538,7 +637,7 @@ window.addEventListener("load", async() => {
         // create guess word button
         const guessWordBtn = document.createElement("button");
         guessWordBtn.classList = "button";
-        guessWordBtn.innerHTML = "Guess Word";
+        guessWordBtn.innerHTML = "Guess Word" + "<br>" + "-1 point if incorrect";
         
         guessWordBtn.addEventListener("click", async () => {
             guessWordBtn.disabled = true;
@@ -559,7 +658,7 @@ window.addEventListener("load", async() => {
             
             // compare guess to answer; incorrect guess costs 2 points
             if (wordGuess !== todaysWord.toLowerCase()) {
-                todaysScore.score -= 2;
+                todaysScore.score -= 1;
 
                 // game over condition
                 if (todaysScore.score <= 0) {
@@ -637,31 +736,34 @@ window.addEventListener("load", async() => {
         
         hr1.classList.add("lines");
 
-        // load standings
-        try {
-            await loadStandings(currentWeek, currentYear);
+        // set up chat entry box
+        chatTitle.innerHTML = "Player Chat";
+        const chatText = document.createElement("textarea");
+        chatText.id = "chatText";
+        chatText.placeholder = "Type your message...";
+        chatText.rows = "4";
+        chatInputContainer.appendChild(chatText);
+        const chatSubmitBtn = document.createElement("button");
+        chatSubmitBtn.id = "chatSubmitBtn";
+        chatSubmitBtn.classList = "button";
+        chatSubmitBtn.innerHTML = "Submit";
+        chatInputContainer.appendChild(chatSubmitBtn);
+        document.getElementById("chatSubmitBtn").addEventListener("click", () => {
+            submitChat(playerId, currentWeek, currentYear);
+        });
         
-        } catch (err) {
-           console.error("Failed to load standings:", err);
-        }
-
         hr2.classList.add("lines");
 
-        // show scoring table
-        scoringTitle.textContent = "Scoring";
-        const table = document.createElement("table");
-        table.innerHTML = `
-            <tr><td>Clue 1 (Difficult Clue)</td><td>       </td><td>Free!</td></tr>
-            <tr><td>Clue 2 (Medium Clue)</td><td>       </td><td>-3 points</td></tr>
-            <tr><td>Clue 3 (Easy Clue)</td><td>       </td><td>-2 points</td></tr>
-            <tr><td>Random Letter Reveal 1</td><td>       </td><td>-1 point</td></tr>
-            <tr><td>Random Letter Reveal 2</td><td>       </td><td>-2 points</td></tr>
-            <tr><td>Random Letter Reveal n</td><td>       </td><td>-n points</td></tr>
-            <tr><td>Incorrect Word Guess</td><td>       </td><td>-2 points</td></tr>
-        `;
-        scoringBody.appendChild(table);
+        // load chat & standings
+        try {
+            await loadChat(currentWeek, currentYear);
+            await loadStandings(currentWeek, currentYear);
+          
+        } catch (err) {
+           console.error("Failed to load chat & standings:", err);
+        }
         hr3.classList.add("lines");
-
+        
         // logout button
         const logoutBtn = document.createElement("button");
         logoutBtn.classList = "button";
