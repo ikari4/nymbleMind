@@ -399,7 +399,8 @@ window.addEventListener("load", async() => {
             
             const clueDiv = document.getElementById("clueDiv");
             clueDiv.style.minHeight = 0;
-            
+            clueDiv.style.margin = 0;
+
             try {
                 await loadChat(currentWeek, currentYear);
                 await loadStandings(currentWeek, currentYear);
