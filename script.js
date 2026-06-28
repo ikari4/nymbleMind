@@ -208,6 +208,8 @@ async function loadChat(currentWeek, currentYear) {
 }
 
 function buildChatTable(chats) {
+    const chatTitle = document.getElementById("chatTitle");
+    chatTitle.innerHTML = "Player Chat";
     const chatLog = document.getElementById("chatLog");
     chatLog.innerHTML = "";
 
@@ -372,7 +374,6 @@ window.addEventListener("load", async() => {
     const btnDivTop = document.getElementById("btnDivTop");
     const btnDivBottom = document.getElementById("btnDivBottom");
     const standingsDiv = document.getElementById("standingsDiv");
-    const chatTitle = document.getElementById("chatTitle");
     const chatInputContainer = document.getElementById("chatInputContainer");
     const chatLog = document.getElementById("chatLog");
     const hr1 = document.getElementById("hr1");
@@ -395,6 +396,9 @@ window.addEventListener("load", async() => {
 
         // if sat or sun, post message and load standings
         if(currentDay === 6 || currentDay === 0) {
+            
+            const clueDiv = document.getElementById("clueDiv");
+            clueDiv.style.minHeight = 0;
             
             try {
                 await loadChat(currentWeek, currentYear);
@@ -738,7 +742,6 @@ window.addEventListener("load", async() => {
         hr1.classList.add("lines");
 
         // set up chat entry box
-        chatTitle.innerHTML = "Player Chat";
         const chatText = document.createElement("textarea");
         chatText.id = "chatText";
         chatText.placeholder = "Type your message...";
