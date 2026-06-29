@@ -746,7 +746,7 @@ window.addEventListener("load", async() => {
         const chatText = document.createElement("textarea");
         chatText.id = "chatText";
         chatText.placeholder = "Type your message...";
-        chatText.rows = "4";
+        chatText.rows = "2";
         chatInputContainer.appendChild(chatText);
         const chatSubmitBtn = document.createElement("button");
         chatSubmitBtn.id = "chatSubmitBtn";
